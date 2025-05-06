@@ -10,6 +10,11 @@ import Products from "./pages/Products";
 import Components from "./pages/Components";
 import FailureModes from "./pages/FailureModes";
 import SpareParts from "./pages/SpareParts";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Teams from "./pages/Teams";
+import Tasks from "./pages/Tasks";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +30,11 @@ const App = () => (
           <Route path="/components" element={<Components />} />
           <Route path="/failure-modes" element={<FailureModes />} />
           <Route path="/spare-parts" element={<SpareParts />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/teams" element={<Teams />} />
+          <Route path="/tasks" element={<Tasks />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
