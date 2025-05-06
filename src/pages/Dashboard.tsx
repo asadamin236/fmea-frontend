@@ -26,10 +26,10 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold">Dashboard</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Total Products" value="24" trend="up" percentage="12" />
-          <StatCard title="Components" value="156" trend="up" percentage="8" />
-          <StatCard title="Critical Failures" value="7" trend="down" percentage="3" />
-          <StatCard title="Spare Parts" value="43" trend="up" percentage="15" />
+          <StatCard title="Total Products" value="24" trend={{ value: "12", positive: true }} />
+          <StatCard title="Components" value="156" trend={{ value: "8", positive: true }} />
+          <StatCard title="Critical Failures" value="7" trend={{ value: "3", positive: false }} />
+          <StatCard title="Spare Parts" value="43" trend={{ value: "15", positive: true }} />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
