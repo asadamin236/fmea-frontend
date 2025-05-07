@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { checkAuth, isAdmin, User } from '@/utils/auth';
-import { UserPlus, Trash2, UserRound } from 'lucide-react';
+import { UserPlus, Trash2, UserRound, Eye, Edit } from 'lucide-react';
 
 const Users = () => {
   const navigate = useNavigate();
@@ -90,6 +90,14 @@ const Users = () => {
     
     toast.success("User deleted successfully");
   };
+
+  const handleViewUser = (userId: string) => {
+    navigate(`/users/${userId}`);
+  };
+  
+  const handleEditUser = (userId: string) => {
+    navigate(`/users/${userId}`);
+  };
   
   return (
     <Layout>
@@ -113,7 +121,7 @@ const Users = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="w-[160px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -128,14 +136,32 @@ const Users = () => {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.role}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteUser(user.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewUser(user.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditUser(user.id)}
+                          >
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteUser(user.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

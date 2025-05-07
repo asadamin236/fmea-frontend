@@ -28,6 +28,7 @@ import SparePartForm from "./pages/SparePartForm";
 import SparePartDetail from "./pages/SparePartDetail";
 import TeamMemberForm from "./pages/TeamMemberForm";
 import Users from "./pages/Users";
+import UserDetail from "./pages/UserDetail";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ const App = () => {
             <Route path="/tasks/:id" element={<TaskDetail />} />
             <Route path="/tasks/:id/edit" element={<TaskForm />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/users/:id" element={<UserDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
