@@ -27,6 +27,7 @@ import FailureModeDetail from "./pages/FailureModeDetail";
 import SparePartForm from "./pages/SparePartForm";
 import SparePartDetail from "./pages/SparePartDetail";
 import TeamMemberForm from "./pages/TeamMemberForm";
+import Users from "./pages/Users";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ const App = () => {
             <Route path="/tasks/new" element={<TaskForm />} />
             <Route path="/tasks/:id" element={<TaskDetail />} />
             <Route path="/tasks/:id/edit" element={<TaskForm />} />
+            <Route path="/users" element={<Users />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

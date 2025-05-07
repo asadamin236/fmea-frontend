@@ -1,5 +1,5 @@
 
-// Simple authentication system using localStorage
+// Authentication system using localStorage
 
 export interface User {
   id: string;
@@ -33,9 +33,8 @@ export const checkAuth = (): AuthState => {
 // Login user
 export const loginUser = (email: string, password: string): { success: boolean; user?: User; error?: string } => {
   // In a real app, you would validate against a backend
-  // For demo, we'll check against some hardcoded values
   
-  // Sample users
+  // First check if the user is one of our sample users
   const sampleUsers: User[] = [
     {
       id: '1',
@@ -51,56 +50,34 @@ export const loginUser = (email: string, password: string): { success: boolean; 
     }
   ];
   
-  // Find user by email
-  const user = sampleUsers.find(u => u.email === email);
-  
-  // Simple validation - in a real app you'd hash passwords
-  if (user && password === 'password') {
-    localStorage.setItem('fmea_user', JSON.stringify(user));
-    return { success: true, user };
+  // Check sample users first (for demo purposes)
+  const sampleUser = sampleUsers.find(u => u.email === email);
+  if (sampleUser && password === 'password') {
+    localStorage.setItem('fmea_user', JSON.stringify(sampleUser));
+    return { success: true, user: sampleUser };
   }
   
-  return { success: false, error: 'Invalid email or password' };
-};
-
-// Register user
-export const registerUser = (name: string, email: string, password: string): 
-  { success: boolean; user?: User; error?: string } => {
-  // In a real app, you would validate and store in a backend
+  // Check users created by admin
+  const storedUsers = localStorage.getItem('fmea_users');
+  const userPasswords = localStorage.getItem('fmea_user_passwords');
   
-  // Check if email already exists
-  const userStr = localStorage.getItem('fmea_users');
-  let users: User[] = [];
-  
-  if (userStr) {
+  if (storedUsers && userPasswords) {
     try {
-      users = JSON.parse(userStr);
+      const users: User[] = JSON.parse(storedUsers);
+      const passwords = JSON.parse(userPasswords);
       
-      if (users.find(u => u.email === email)) {
-        return { success: false, error: 'Email already in use' };
+      const user = users.find(u => u.email === email);
+      
+      if (user && passwords[email] === password) {
+        localStorage.setItem('fmea_user', JSON.stringify(user));
+        return { success: true, user };
       }
     } catch (e) {
-      // Invalid JSON, start fresh
-      users = [];
+      // Invalid JSON
     }
   }
   
-  // Create new user - always as regular user (admin would be assigned separately)
-  const newUser: User = {
-    id: Date.now().toString(),
-    name,
-    email,
-    role: 'user'
-  };
-  
-  // Save user to "database"
-  users.push(newUser);
-  localStorage.setItem('fmea_users', JSON.stringify(users));
-  
-  // Log in the new user
-  localStorage.setItem('fmea_user', JSON.stringify(newUser));
-  
-  return { success: true, user: newUser };
+  return { success: false, error: 'Invalid email or password' };
 };
 
 // Logout user
