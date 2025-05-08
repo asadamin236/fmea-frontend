@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -11,9 +10,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { components, equipmentTypes } from '@/data/mockData';
-import { PlusCircle, Edit, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RiskLevel } from '@/types/fmea-types';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const getBadgeVariant = (riskRating: RiskLevel | undefined) => {
   switch (riskRating) {
@@ -31,6 +41,34 @@ const getBadgeVariant = (riskRating: RiskLevel | undefined) => {
 };
 
 const ComponentList: React.FC = () => {
+  const { toast } = useToast();
+  const [componentList, setComponentList] = useState(components);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [componentToDelete, setComponentToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (componentId: string) => {
+    setComponentToDelete(componentId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (componentToDelete) {
+      const componentName = componentList.find(c => c.id === componentToDelete)?.name || 'Component';
+      
+      // Filter out the deleted component
+      setComponentList(componentList.filter(component => component.id !== componentToDelete));
+      
+      // Show toast notification
+      toast({
+        title: "Component Deleted",
+        description: `${componentName} has been deleted successfully`,
+      });
+      
+      setShowDeleteDialog(false);
+      setComponentToDelete(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -55,7 +93,7 @@ const ComponentList: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {components.map((component) => {
+            {componentList.map((component) => {
               const equipmentType = equipmentTypes.find(eq => eq.id === component.equipmentTypeId);
               
               return (
@@ -80,6 +118,14 @@ const ComponentList: React.FC = () => {
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDeleteClick(component.id)}
+                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -88,6 +134,24 @@ const ComponentList: React.FC = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this component?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the component
+              and all of its associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

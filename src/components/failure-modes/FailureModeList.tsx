@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -11,9 +10,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { failureModes } from '@/data/mockData';
-import { PlusCircle, Edit, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RiskLevel } from '@/types/fmea-types';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const getBadgeVariant = (riskRating: RiskLevel) => {
   switch (riskRating) {
@@ -31,6 +41,34 @@ const getBadgeVariant = (riskRating: RiskLevel) => {
 };
 
 const FailureModeList: React.FC = () => {
+  const { toast } = useToast();
+  const [modes, setModes] = useState(failureModes);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [modeToDelete, setModeToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (modeId: string) => {
+    setModeToDelete(modeId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (modeToDelete) {
+      const modeName = modes.find(m => m.id === modeToDelete)?.description || 'Failure Mode';
+      
+      // Filter out the deleted failure mode
+      setModes(modes.filter(mode => mode.id !== modeToDelete));
+      
+      // Show toast notification
+      toast({
+        title: "Failure Mode Deleted",
+        description: `${modeName} has been deleted successfully`,
+      });
+      
+      setShowDeleteDialog(false);
+      setModeToDelete(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -55,7 +93,7 @@ const FailureModeList: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {failureModes.map((mode) => (
+            {modes.map((mode) => (
               <TableRow key={mode.id}>
                 <TableCell className="font-medium">{mode.description}</TableCell>
                 <TableCell>{mode.category}</TableCell>
@@ -77,6 +115,14 @@ const FailureModeList: React.FC = () => {
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(mode.id)}
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -84,6 +130,24 @@ const FailureModeList: React.FC = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this failure mode?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the failure mode
+              and all of its associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

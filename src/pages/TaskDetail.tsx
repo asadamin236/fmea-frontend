@@ -1,14 +1,27 @@
-
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const TaskDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   // Mock task data - in a real app, you would fetch this based on the ID
   const task = {
@@ -42,6 +55,21 @@ const TaskDetail = () => {
     }
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    // In a real app, you would call an API to delete the task
+    toast({
+      title: "Task Deleted",
+      description: `Task "${task.description}" has been deleted successfully`,
+    });
+    
+    setShowDeleteDialog(false);
+    navigate('/tasks');
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -62,6 +90,13 @@ const TaskDetail = () => {
                 Edit Task
               </Button>
             </Link>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteClick}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Task
+            </Button>
           </div>
         </div>
 
@@ -130,6 +165,24 @@ const TaskDetail = () => {
             </CardContent>
           </Card>
         </div>
+
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to delete this task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the task
+                and all of its associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

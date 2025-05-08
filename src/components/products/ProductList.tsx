@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -11,9 +10,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { mainProducts, equipmentTypes } from '@/data/mockData';
-import { PlusCircle, Edit, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RiskLevel } from '@/types/fmea-types';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const getBadgeVariant = (riskRating: RiskLevel) => {
   switch (riskRating) {
@@ -31,6 +41,34 @@ const getBadgeVariant = (riskRating: RiskLevel) => {
 };
 
 const ProductList: React.FC = () => {
+  const { toast } = useToast();
+  const [products, setProducts] = useState(mainProducts);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (productId: string) => {
+    setProductToDelete(productId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (productToDelete) {
+      const productName = products.find(p => p.id === productToDelete)?.name || 'Product';
+      
+      // Filter out the deleted product
+      setProducts(products.filter(product => product.id !== productToDelete));
+      
+      // Show toast notification
+      toast({
+        title: "Product Deleted",
+        description: `${productName} has been deleted successfully`,
+      });
+      
+      setShowDeleteDialog(false);
+      setProductToDelete(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -55,7 +93,7 @@ const ProductList: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mainProducts.map((product) => {
+            {products.map((product) => {
               const equipmentType = equipmentTypes.find(eq => eq.id === product.equipmentTypeId);
               
               return (
@@ -80,6 +118,14 @@ const ProductList: React.FC = () => {
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDeleteClick(product.id)}
+                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -88,6 +134,24 @@ const ProductList: React.FC = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the product
+              and all of its associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

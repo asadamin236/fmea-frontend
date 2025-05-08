@@ -1,12 +1,22 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Edit, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Mock task data
 const mockTasks = [
@@ -83,6 +93,38 @@ const getStatusBadge = (status: string) => {
 };
 
 const Tasks = () => {
+  const [tasks, setTasks] = useState(mockTasks);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (taskId: string) => {
+    setTaskToDelete(taskId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (taskToDelete) {
+      const taskDesc = tasks.find(t => t.id === taskToDelete)?.description || 'Task';
+      
+      // Filter out the deleted task
+      setTasks(tasks.filter(task => task.id !== taskToDelete));
+      
+      // Show toast notification
+      toast({
+        title: "Task Deleted",
+        description: `Task "${taskDesc}" has been deleted successfully`,
+      });
+      
+      setShowDeleteDialog(false);
+      setTaskToDelete(null);
+    }
+  };
+
+  // Count tasks by status for the summary cards
+  const completedCount = tasks.filter(task => task.status === 'completed').length;
+  const pendingCount = tasks.filter(task => task.status === 'pending').length;
+  const overdueCount = tasks.filter(task => task.status === 'overdue').length;
+
   return (
     <Layout>
       <div>
@@ -102,7 +144,7 @@ const Tasks = () => {
               <CardTitle className="text-lg">Completed</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              <div className="text-3xl font-bold">8</div>
+              <div className="text-3xl font-bold">{completedCount}</div>
               <p className="text-sm text-gray-500">Tasks completed this month</p>
             </CardContent>
           </Card>
@@ -112,7 +154,7 @@ const Tasks = () => {
               <CardTitle className="text-lg">Pending</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              <div className="text-3xl font-bold">12</div>
+              <div className="text-3xl font-bold">{pendingCount}</div>
               <p className="text-sm text-gray-500">Tasks waiting for action</p>
             </CardContent>
           </Card>
@@ -122,7 +164,7 @@ const Tasks = () => {
               <CardTitle className="text-lg">Overdue</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              <div className="text-3xl font-bold">3</div>
+              <div className="text-3xl font-bold">{overdueCount}</div>
               <p className="text-sm text-gray-500">Tasks past their deadline</p>
             </CardContent>
           </Card>
@@ -142,7 +184,7 @@ const Tasks = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockTasks.map((task) => (
+              {tasks.map((task) => (
                 <TableRow key={task.id}>
                   <TableCell className="font-medium">{task.taskType}</TableCell>
                   <TableCell>{task.description}</TableCell>
@@ -172,6 +214,14 @@ const Tasks = () => {
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDeleteClick(task.id)}
+                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -179,6 +229,24 @@ const Tasks = () => {
             </TableBody>
           </Table>
         </div>
+
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to delete this task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the task
+                and all of its associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

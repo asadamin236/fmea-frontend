@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -11,8 +10,19 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { spareParts } from '@/data/mockData';
-import { PlusCircle, Edit, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -28,6 +38,34 @@ const getStatusBadge = (status: string) => {
 };
 
 const SparePartList: React.FC = () => {
+  const { toast } = useToast();
+  const [parts, setParts] = useState(spareParts);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [partToDelete, setPartToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (partId: string) => {
+    setPartToDelete(partId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (partToDelete) {
+      const partName = parts.find(p => p.id === partToDelete)?.description || 'Spare Part';
+      
+      // Filter out the deleted spare part
+      setParts(parts.filter(part => part.id !== partToDelete));
+      
+      // Show toast notification
+      toast({
+        title: "Spare Part Deleted",
+        description: `${partName} has been deleted successfully`,
+      });
+      
+      setShowDeleteDialog(false);
+      setPartToDelete(null);
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -53,7 +91,7 @@ const SparePartList: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {spareParts.map((part) => (
+            {parts.map((part) => (
               <TableRow key={part.id} className={part.currentStock < part.minStock ? "bg-red-50" : ""}>
                 <TableCell className="font-medium">{part.materialNo}</TableCell>
                 <TableCell>{part.description}</TableCell>
@@ -82,6 +120,14 @@ const SparePartList: React.FC = () => {
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(part.id)}
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -89,6 +135,24 @@ const SparePartList: React.FC = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this spare part?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the spare part
+              and all of its associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

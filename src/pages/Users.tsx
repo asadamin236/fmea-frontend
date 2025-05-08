@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -10,6 +9,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "@/components/ui/sonner";
 import { checkAuth, isAdmin, User } from '@/utils/auth';
 import { UserPlus, Trash2, UserRound, Eye, Edit } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Users = () => {
   const navigate = useNavigate();
@@ -25,6 +34,9 @@ const Users = () => {
     password: '',
     role: 'user' as 'admin' | 'user'
   });
+  
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
   React.useEffect(() => {
     // Check if user is authenticated and is admin
@@ -83,12 +95,22 @@ const Users = () => {
     toast.success("User added successfully");
   };
   
-  const handleDeleteUser = (id: string) => {
-    const updatedUsers = users.filter(user => user.id !== id);
-    setUsers(updatedUsers);
-    localStorage.setItem('fmea_users', JSON.stringify(updatedUsers));
-    
-    toast.success("User deleted successfully");
+  const handleDeleteClick = (userId: string) => {
+    setUserToDelete(userId);
+    setShowDeleteDialog(true);
+  };
+  
+  const confirmDelete = () => {
+    if (userToDelete) {
+      const userName = users.find(u => u.id === userToDelete)?.name || 'User';
+      const updatedUsers = users.filter(user => user.id !== userToDelete);
+      setUsers(updatedUsers);
+      localStorage.setItem('fmea_users', JSON.stringify(updatedUsers));
+      
+      toast.success(`User ${userName} deleted successfully`);
+      setShowDeleteDialog(false);
+      setUserToDelete(null);
+    }
   };
 
   const handleViewUser = (userId: string) => {
@@ -156,7 +178,8 @@ const Users = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() => handleDeleteClick(user.id)}
+                            className="text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
@@ -230,6 +253,23 @@ const Users = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The user will lose all access to the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };
