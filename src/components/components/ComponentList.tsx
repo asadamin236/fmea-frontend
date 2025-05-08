@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Table,
@@ -7,12 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { components, equipmentTypes } from '@/data/mockData';
 import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { RiskLevel } from '@/types/fmea-types';
 import { useToast } from '@/components/ui/use-toast';
 import {
   AlertDialog,
@@ -25,24 +23,31 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const getBadgeVariant = (riskRating: RiskLevel | undefined) => {
-  switch (riskRating) {
-    case 'low': 
-      return 'bg-risk-low';
-    case 'medium': 
-      return 'bg-risk-medium';
-    case 'high': 
-      return 'bg-risk-high';
-    case 'critical': 
-      return 'bg-risk-critical';
-    default:
-      return 'bg-muted';
-  }
-};
+// Mock data for components
+const initialComponents = [
+  { 
+    id: '1', 
+    name: 'Motor Assembly M-452', 
+    description: 'High-efficiency electric motor assembly for XL pumps',
+    modules: ['Motor', 'Pump'] 
+  },
+  { 
+    id: '2', 
+    name: 'Control Panel CP-789', 
+    description: 'Main control panel for pump operations',
+    modules: ['Control System', 'Sensor'] 
+  },
+  { 
+    id: '3', 
+    name: 'Valve System VS-321', 
+    description: 'Pressure regulation valve assembly',
+    modules: ['Valve'] 
+  },
+];
 
 const ComponentList: React.FC = () => {
   const { toast } = useToast();
-  const [componentList, setComponentList] = useState(components);
+  const [components, setComponents] = useState(initialComponents);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [componentToDelete, setComponentToDelete] = useState<string | null>(null);
 
@@ -53,10 +58,10 @@ const ComponentList: React.FC = () => {
 
   const confirmDelete = () => {
     if (componentToDelete) {
-      const componentName = componentList.find(c => c.id === componentToDelete)?.name || 'Component';
+      const componentName = components.find(c => c.id === componentToDelete)?.name || 'Component';
       
       // Filter out the deleted component
-      setComponentList(componentList.filter(component => component.id !== componentToDelete));
+      setComponents(components.filter(component => component.id !== componentToDelete));
       
       // Show toast notification
       toast({
@@ -86,51 +91,41 @@ const ComponentList: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Equipment Type</TableHead>
-              <TableHead>Risk Rating</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Modules</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {componentList.map((component) => {
-              const equipmentType = equipmentTypes.find(eq => eq.id === component.equipmentTypeId);
-              
-              return (
-                <TableRow key={component.id}>
-                  <TableCell className="font-medium">{component.name}</TableCell>
-                  <TableCell>{component.category}</TableCell>
-                  <TableCell>{equipmentType?.name || 'Unknown'}</TableCell>
-                  <TableCell>
-                    <Badge className={getBadgeVariant(component.riskRating)}>
-                      {component.riskRating || 'Unknown'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link to={`/components/${component.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Link to={`/components/${component.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleDeleteClick(component.id)}
-                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <Trash2 className="h-4 w-4" />
+            {components.map((component) => (
+              <TableRow key={component.id}>
+                <TableCell className="font-medium">{component.name}</TableCell>
+                <TableCell>{component.description}</TableCell>
+                <TableCell>{component.modules.join(', ')}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Link to={`/components/${component.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
                       </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                    </Link>
+                    <Link to={`/components/${component.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(component.id)}
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
