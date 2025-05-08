@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,8 +23,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Plus, Save, X } from 'lucide-react';
-import { equipmentData, equipmentTypes, manufacturers, equipmentFunctions } from '@/data/equipmentData';
-import { EquipmentCriticality, EquipmentClass, EquipmentSCE, EquipmentFunction } from '@/types/equipment-types';
+import { equipmentData, equipmentTypes, manufacturers, equipmentFunctions, equipmentClasses } from '@/data/equipmentData';
+import { EquipmentCriticality, EquipmentSCE, EquipmentFunction } from '@/types/equipment-types';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
@@ -60,7 +59,7 @@ const EquipmentForm: React.FC = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      equipmentClass: 'Moisture Analyzer',
+      equipmentClass: '',
       equipmentType: '',
       criticality: 'medium',
       area: '',
@@ -162,20 +161,32 @@ const EquipmentForm: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Equipment Class</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Equipment Class" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Moisture Analyzer">Moisture Analyzer</SelectItem>
-                          <SelectItem value="Temperature Sensor">Temperature Sensor</SelectItem>
-                          <SelectItem value="Pressure Gauge">Pressure Gauge</SelectItem>
-                          <SelectItem value="Level Meter">Level Meter</SelectItem>
-                          <SelectItem value="Flow Meter">Flow Meter</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-grow">
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Equipment Class" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {equipmentClasses.map((equipClass) => (
+                                <SelectItem key={equipClass.id} value={equipClass.id}>
+                                  {equipClass.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => window.open('/equipment-classes', '_blank')}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -187,20 +198,32 @@ const EquipmentForm: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Equipment Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Equipment Type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {equipmentTypes.map((type) => (
-                            <SelectItem key={type.id} value={type.id}>
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-grow">
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Equipment Type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {equipmentTypes.map((type) => (
+                                <SelectItem key={type.id} value={type.id}>
+                                  {type.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => window.open('/equipment-types', '_blank')}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -212,7 +235,7 @@ const EquipmentForm: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Criticality</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Criticality" />
@@ -235,20 +258,32 @@ const EquipmentForm: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Manufacturer</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Manufacturer" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {manufacturers.map((manufacturer) => (
-                            <SelectItem key={manufacturer.id} value={manufacturer.id}>
-                              {manufacturer.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-grow">
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Manufacturer" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {manufacturers.map((manufacturer) => (
+                                <SelectItem key={manufacturer.id} value={manufacturer.id}>
+                                  {manufacturer.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => window.open('/manufacturers', '_blank')}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -274,7 +309,7 @@ const EquipmentForm: React.FC = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>SCE (Safety Critical Equipment)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Yes/No" />

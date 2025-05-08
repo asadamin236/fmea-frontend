@@ -32,6 +32,12 @@ import UserDetail from "./pages/UserDetail";
 import Equipment from "./pages/Equipment";
 import EquipmentDetail from "./pages/EquipmentDetail";
 import EquipmentForm from "./pages/EquipmentForm";
+import EquipmentClasses from "./pages/EquipmentClasses";
+import EquipmentClassForm from "./pages/EquipmentClassForm";
+import EquipmentTypes from "./pages/EquipmentTypes";
+import EquipmentTypeForm from "./pages/EquipmentTypeForm";
+import Manufacturers from "./pages/Manufacturers";
+import ManufacturerForm from "./pages/ManufacturerForm";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -65,6 +71,18 @@ const App = () => {
             <Route path="/equipment/new" element={<EquipmentForm />} />
             <Route path="/equipment/:id" element={<EquipmentDetail />} />
             <Route path="/equipment/:id/edit" element={<EquipmentForm />} />
+            {/* New Equipment Class Routes */}
+            <Route path="/equipment-classes" element={<EquipmentClasses />} />
+            <Route path="/equipment-classes/new" element={<EquipmentClassForm />} />
+            <Route path="/equipment-classes/:id/edit" element={<EquipmentClassForm />} />
+            {/* New Equipment Type Routes */}
+            <Route path="/equipment-types" element={<EquipmentTypes />} />
+            <Route path="/equipment-types/new" element={<EquipmentTypeForm />} />
+            <Route path="/equipment-types/:id/edit" element={<EquipmentTypeForm />} />
+            {/* New Manufacturer Routes */}
+            <Route path="/manufacturers" element={<Manufacturers />} />
+            <Route path="/manufacturers/new" element={<ManufacturerForm />} />
+            <Route path="/manufacturers/:id/edit" element={<ManufacturerForm />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />

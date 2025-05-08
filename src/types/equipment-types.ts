@@ -1,7 +1,12 @@
 
 export type EquipmentCriticality = 'low' | 'medium' | 'high';
-export type EquipmentClass = 'Moisture Analyzer' | 'Temperature Sensor' | 'Pressure Gauge' | 'Level Meter' | 'Flow Meter';
 export type EquipmentSCE = 'Yes' | 'No';
+
+export interface EquipmentClass {
+  id: string;
+  name: string;
+  description?: string;
+}
 
 export interface EquipmentFunction {
   id: string;
@@ -17,6 +22,8 @@ export interface EquipmentType {
 export interface Manufacturer {
   id: string;
   name: string;
+  contactInfo?: string;
+  website?: string;
 }
 
 export interface Equipment {
@@ -35,7 +42,7 @@ export interface Equipment {
   manufacturer: string;
   model: string;
   criticality: EquipmentCriticality;
-  equipmentClass: EquipmentClass;
+  equipmentClass: string;
   equipmentFunctions: EquipmentFunction[];
   numberOfUnits: number;
 }

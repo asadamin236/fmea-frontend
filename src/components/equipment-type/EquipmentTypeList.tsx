@@ -8,13 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { equipmentData, equipmentTypes, manufacturers, equipmentClasses } from '@/data/equipmentData';
-import { Equipment, EquipmentCriticality } from '@/types/equipment-types';
 import { useToast } from '@/components/ui/use-toast';
+import { equipmentTypes } from '@/data/equipmentData';
+import { EquipmentType } from '@/types/equipment-types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,22 +25,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const getBadgeVariant = (criticality: EquipmentCriticality) => {
-  switch (criticality) {
-    case 'low': 
-      return 'bg-risk-low';
-    case 'medium': 
-      return 'bg-risk-medium';
-    case 'high': 
-      return 'bg-risk-high';
-    default:
-      return 'bg-muted';
-  }
-};
-
-const EquipmentList: React.FC = () => {
+const EquipmentTypeList: React.FC = () => {
   const { toast } = useToast();
-  const [equipment, setEquipment] = useState<Equipment[]>(equipmentData);
+  const [types, setTypes] = useState<EquipmentType[]>(equipmentTypes);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -52,14 +38,14 @@ const EquipmentList: React.FC = () => {
 
   const confirmDelete = () => {
     if (itemToDelete) {
-      const itemName = equipment.find(e => e.id === itemToDelete)?.equipmentDescription || 'Equipment';
+      const itemName = types.find(e => e.id === itemToDelete)?.name || 'Equipment Type';
       
-      // Filter out the deleted equipment
-      setEquipment(equipment.filter(item => item.id !== itemToDelete));
+      // Filter out the deleted type
+      setTypes(types.filter(item => item.id !== itemToDelete));
       
       // Show toast notification
       toast({
-        title: "Equipment Deleted",
+        title: "Equipment Type Deleted",
         description: `${itemName} has been deleted successfully`,
       });
       
@@ -68,24 +54,14 @@ const EquipmentList: React.FC = () => {
     }
   };
 
-  // Helper function to get equipment class name by ID
-  const getEquipmentClassName = (id: string) => {
-    return equipmentClasses.find(c => c.id === id)?.name || 'N/A';
-  };
-
-  // Helper function to get equipment type name by ID
-  const getEquipmentTypeName = (id: string) => {
-    return equipmentTypes.find(t => t.id === id)?.name || 'N/A';
-  };
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Equipment List</h1>
-        <Link to="/equipment/new">
+        <h1 className="text-2xl font-bold">Equipment Types</h1>
+        <Link to="/equipment-types/new">
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Equipment
+            Add Equipment Type
           </Button>
         </Link>
       </div>
@@ -94,36 +70,19 @@ const EquipmentList: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Equipment No.</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Area</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Class</TableHead>
-              <TableHead>Criticality</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {equipment.map((item) => (
+            {types.map((item) => (
               <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.equipmentNoFromSAP}</TableCell>
-                <TableCell>{item.equipmentDescription}</TableCell>
-                <TableCell>{item.area}</TableCell>
-                <TableCell>{getEquipmentTypeName(item.equipmentType)}</TableCell>
-                <TableCell>{getEquipmentClassName(item.equipmentClass)}</TableCell>
-                <TableCell>
-                  <Badge className={getBadgeVariant(item.criticality)}>
-                    {item.criticality}
-                  </Badge>
-                </TableCell>
+                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell>{item.description || 'N/A'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Link to={`/equipment/${item.id}`}>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link to={`/equipment/${item.id}/edit`}>
+                    <Link to={`/equipment-types/${item.id}/edit`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -147,10 +106,10 @@ const EquipmentList: React.FC = () => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this equipment?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to delete this equipment type?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the equipment
-              and all of its associated data.
+              This action cannot be undone. This will permanently delete the equipment type.
+              Any equipment using this type may be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -165,4 +124,4 @@ const EquipmentList: React.FC = () => {
   );
 };
 
-export default EquipmentList;
+export default EquipmentTypeList;

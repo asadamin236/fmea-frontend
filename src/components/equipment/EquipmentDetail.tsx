@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { equipmentData, equipmentTypes, manufacturers } from '@/data/equipmentData';
+import { equipmentData, equipmentTypes, manufacturers, equipmentClasses } from '@/data/equipmentData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit } from 'lucide-react';
@@ -27,6 +27,7 @@ const EquipmentDetail: React.FC = () => {
 
   const equipmentType = equipmentTypes.find(type => type.id === equipment.equipmentType);
   const manufacturer = manufacturers.find(m => m.id === equipment.manufacturer);
+  const equipmentClass = equipmentClasses.find(c => c.id === equipment.equipmentClass);
 
   return (
     <div>
@@ -63,15 +64,15 @@ const EquipmentDetail: React.FC = () => {
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Equipment Class</div>
-              <div>{equipment.equipmentClass}</div>
+              <div>{equipmentClass?.name || 'N/A'}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Equipment Type</div>
-              <div>{equipmentType?.name}</div>
+              <div>{equipmentType?.name || 'N/A'}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Manufacturer</div>
-              <div>{manufacturer?.name}</div>
+              <div>{manufacturer?.name || 'N/A'}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Model</div>

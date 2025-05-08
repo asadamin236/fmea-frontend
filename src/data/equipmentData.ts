@@ -1,5 +1,13 @@
 
-import { Equipment, EquipmentType, Manufacturer, EquipmentFunction } from "@/types/equipment-types";
+import { Equipment, EquipmentType, Manufacturer, EquipmentFunction, EquipmentClass } from "@/types/equipment-types";
+
+export const equipmentClasses: EquipmentClass[] = [
+  { id: "1", name: "Moisture Analyzer", description: "Devices used to measure moisture content" },
+  { id: "2", name: "Temperature Sensor", description: "Devices used to measure temperature" },
+  { id: "3", name: "Pressure Gauge", description: "Devices used to measure pressure" },
+  { id: "4", name: "Level Meter", description: "Devices used to measure levels" },
+  { id: "5", name: "Flow Meter", description: "Devices used to measure flow rates" },
+];
 
 export const equipmentTypes: EquipmentType[] = [
   { id: "1", name: "Moisture Analyzer" },
@@ -10,11 +18,11 @@ export const equipmentTypes: EquipmentType[] = [
 ];
 
 export const manufacturers: Manufacturer[] = [
-  { id: "1", name: "Endress+Hauser" },
-  { id: "2", name: "Emerson" },
-  { id: "3", name: "Yokogawa" },
-  { id: "4", name: "ABB" },
-  { id: "5", name: "Siemens" },
+  { id: "1", name: "Endress+Hauser", website: "https://www.endress.com" },
+  { id: "2", name: "Emerson", website: "https://www.emerson.com" },
+  { id: "3", name: "Yokogawa", website: "https://www.yokogawa.com" },
+  { id: "4", name: "ABB", website: "https://www.abb.com" },
+  { id: "5", name: "Siemens", website: "https://www.siemens.com" },
 ];
 
 export const equipmentFunctions: EquipmentFunction[] = [
@@ -42,7 +50,7 @@ export const equipmentData: Equipment[] = [
     manufacturer: "3",
     model: "AW500",
     criticality: "high",
-    equipmentClass: "Moisture Analyzer",
+    equipmentClass: "1",
     equipmentFunctions: [{ id: "1", description: "Moisture Analysis" }],
     numberOfUnits: 1
   },
@@ -62,7 +70,7 @@ export const equipmentData: Equipment[] = [
     manufacturer: "3",
     model: "AW500",
     criticality: "high",
-    equipmentClass: "Moisture Analyzer",
+    equipmentClass: "1",
     equipmentFunctions: [{ id: "1", description: "Moisture Analysis" }],
     numberOfUnits: 1
   },
@@ -82,7 +90,7 @@ export const equipmentData: Equipment[] = [
     manufacturer: "2",
     model: "DM100",
     criticality: "medium",
-    equipmentClass: "Moisture Analyzer",
+    equipmentClass: "1",
     equipmentFunctions: [{ id: "1", description: "Moisture Analysis" }],
     numberOfUnits: 1
   }
