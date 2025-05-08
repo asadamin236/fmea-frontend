@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart2, Settings, Database, FileText, User, Users } from 'lucide-react';
+import { BarChart2, Settings, Database, FileText, User, Users, Settings as SettingsIcon } from 'lucide-react';
 
 const Sidebar = () => {
   return (
@@ -26,6 +26,12 @@ const Sidebar = () => {
               <Link to="/components" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
                 <Settings className="mr-3 h-5 w-5" />
                 <span>Components</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/equipment" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                <Database className="mr-3 h-5 w-5" />
+                <span>Equipment</span>
               </Link>
             </li>
           </ul>
@@ -72,7 +78,7 @@ const Sidebar = () => {
             </li>
             <li>
               <Link to="/settings" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
-                <Settings className="mr-3 h-5 w-5" />
+                <SettingsIcon className="mr-3 h-5 w-5" />
                 <span>Settings</span>
               </Link>
             </li>

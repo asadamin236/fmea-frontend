@@ -29,6 +29,9 @@ import SparePartDetail from "./pages/SparePartDetail";
 import TeamMemberForm from "./pages/TeamMemberForm";
 import Users from "./pages/Users";
 import UserDetail from "./pages/UserDetail";
+import Equipment from "./pages/Equipment";
+import EquipmentDetail from "./pages/EquipmentDetail";
+import EquipmentForm from "./pages/EquipmentForm";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -58,6 +61,10 @@ const App = () => {
             <Route path="/spare-parts/new" element={<SparePartForm />} />
             <Route path="/spare-parts/:id" element={<SparePartDetail />} />
             <Route path="/spare-parts/:id/edit" element={<SparePartForm />} />
+            <Route path="/equipment" element={<Equipment />} />
+            <Route path="/equipment/new" element={<EquipmentForm />} />
+            <Route path="/equipment/:id" element={<EquipmentDetail />} />
+            <Route path="/equipment/:id/edit" element={<EquipmentForm />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
