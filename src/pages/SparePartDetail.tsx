@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit } from 'lucide-react';
+import { equipmentData } from '@/data/equipmentData';
 
 const SparePartDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,38 +14,33 @@ const SparePartDetail = () => {
   // Mock spare part data - in a real app, you would fetch this based on the ID
   const sparePart = {
     id: id || '1',
-    name: 'Bearing Kit BK-45',
-    partNumber: 'BK-45-789',
-    description: 'High-temperature bearings for M-452 motor with specialized ceramic balls for extended durability',
-    manufacturer: 'BearingTech',
-    supplier: 'IndustrialSupplies Inc.',
-    cost: '245.00',
-    currency: 'USD',
-    leadTime: '14',
-    stockLevel: '5',
-    minStockLevel: '3',
+    equipmentId: '1',
+    materialNumber: 'MAT-45-789',
+    materialDescription: 'High-temperature bearings for M-452 motor',
+    proposeStock: '10',
+    minimum: '3',
+    maximum: '15',
+    price: '245.00',
+    currency: 'RM',
     stockStatus: 'In Stock',
-    location: 'Warehouse B - Shelf 12',
-    relatedComponents: ['Motor Assembly M-452', 'Pump Housing PH-890'],
-    lastOrderDate: '2025-02-10',
-    lastReceivedDate: '2025-02-24',
-    warranty: '6 months',
-    notes: 'Order in packs of 2 for better pricing. Compatible with all M-series motors.'
+    remarks: 'Order in packs of 2 for better pricing. Compatible with all M-series motors.'
   };
 
-  const getStockStatusBadge = (status: string, current: string, min: string) => {
-    const currentLevel = parseInt(current);
-    const minLevel = parseInt(min);
-    
-    if (status === 'Out of Stock' || currentLevel === 0) {
-      return <Badge variant="destructive">Out of Stock</Badge>;
+  // Find equipment name
+  const equipment = equipmentData.find(eq => eq.id === sparePart.equipmentId);
+  const equipmentName = equipment ? equipment.equipmentDescription : 'Unknown Equipment';
+
+  const getStockStatusBadge = (status: string) => {
+    switch (status) {
+      case 'In Stock':
+        return <Badge className="bg-green-600">In Stock</Badge>;
+      case 'Low Stock':
+        return <Badge className="bg-amber-500">Low Stock</Badge>;
+      case 'Out of Stock':
+        return <Badge variant="destructive">Out of Stock</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
     }
-    
-    if (currentLevel <= minLevel) {
-      return <Badge className="bg-amber-500">Low Stock</Badge>;
-    }
-    
-    return <Badge className="bg-green-600">In Stock</Badge>;
   };
 
   return (
@@ -74,74 +70,49 @@ const SparePartDetail = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex justify-between">
-                <div>{sparePart.name}</div>
-                <div>{getStockStatusBadge(sparePart.stockStatus, sparePart.stockLevel, sparePart.minStockLevel)}</div>
+                <div>{sparePart.materialDescription}</div>
+                <div>{getStockStatusBadge(sparePart.stockStatus)}</div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Description</h3>
-                  <p className="mt-1">{sparePart.description}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Equipment Name</h3>
+                  <p className="mt-1">{equipmentName}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Part Number</h3>
-                  <p className="mt-1">{sparePart.partNumber}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Material Number</h3>
+                  <p className="mt-1">{sparePart.materialNumber}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Manufacturer</h3>
-                  <p className="mt-1">{sparePart.manufacturer}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Material Description</h3>
+                  <p className="mt-1">{sparePart.materialDescription}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Supplier</h3>
-                  <p className="mt-1">{sparePart.supplier}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                  <p className="mt-1">{`${sparePart.currency} ${sparePart.price}`}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Cost</h3>
-                  <p className="mt-1">{`${sparePart.currency} ${sparePart.cost}`}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Propose Stock</h3>
+                  <p className="mt-1">{sparePart.proposeStock}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Lead Time</h3>
-                  <p className="mt-1">{`${sparePart.leadTime} days`}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Minimum Stock</h3>
+                  <p className="mt-1">{sparePart.minimum}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Current Stock</h3>
-                  <p className="mt-1">{sparePart.stockLevel}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Maximum Stock</h3>
+                  <p className="mt-1">{sparePart.maximum}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Minimum Stock Level</h3>
-                  <p className="mt-1">{sparePart.minStockLevel}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Storage Location</h3>
-                  <p className="mt-1">{sparePart.location}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Last Ordered</h3>
-                  <p className="mt-1">{sparePart.lastOrderDate}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Last Received</h3>
-                  <p className="mt-1">{sparePart.lastReceivedDate}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Warranty</h3>
-                  <p className="mt-1">{sparePart.warranty}</p>
+                  <h3 className="text-sm font-medium text-gray-500">Stock Status</h3>
+                  <p className="mt-1">{getStockStatusBadge(sparePart.stockStatus)}</p>
                 </div>
               </div>
               
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Related Components</h3>
-                <ul className="mt-1 list-disc pl-5">
-                  {sparePart.relatedComponents.map((component, index) => (
-                    <li key={index}>{component}</li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">Notes</h3>
-                <p className="mt-1">{sparePart.notes}</p>
+                <h3 className="text-sm font-medium text-gray-500">Remarks</h3>
+                <p className="mt-1">{sparePart.remarks}</p>
               </div>
             </CardContent>
           </Card>

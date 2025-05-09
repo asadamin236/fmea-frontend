@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Table,
@@ -9,10 +10,10 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { spareParts } from '@/data/mockData';
 import { PlusCircle, Edit, Eye, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { equipmentData } from '@/data/equipmentData';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,14 +25,57 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Updated mock data to match the new structure
+const mockSpareParts = [
+  {
+    id: 'spare1',
+    equipmentId: '1',
+    materialNumber: 'MAT-001',
+    materialDescription: 'Bearing Kit',
+    proposeStock: '10',
+    minimum: '3',
+    maximum: '15',
+    price: '245.00',
+    currency: 'RM',
+    stockStatus: 'In Stock',
+    remarks: 'Standard bearings for motor'
+  },
+  {
+    id: 'spare2',
+    equipmentId: '2',
+    materialNumber: 'MAT-002',
+    materialDescription: 'Seal Kit',
+    proposeStock: '5',
+    minimum: '2',
+    maximum: '10',
+    price: '120.50',
+    currency: 'RM',
+    stockStatus: 'Low Stock',
+    remarks: 'For pump maintenance'
+  },
+  {
+    id: 'spare3',
+    equipmentId: '3',
+    materialNumber: 'MAT-003',
+    materialDescription: 'Filter Element',
+    proposeStock: '0',
+    minimum: '5',
+    maximum: '20',
+    price: '75.00',
+    currency: 'RM',
+    stockStatus: 'Out of Stock',
+    remarks: 'High demand item'
+  }
+];
+
 const getStatusBadge = (status: string) => {
   switch (status) {
-    case 'approved':
-      return <Badge className="bg-green-600">Approved</Badge>;
-    case 'pending':
-      return <Badge className="bg-amber-500">Pending</Badge>;
-    case 'rejected':
-      return <Badge variant="destructive">Rejected</Badge>;
+    case 'In Stock':
+      return <Badge className="bg-green-600">In Stock</Badge>;
+    case 'Low Stock':
+      return <Badge className="bg-amber-500">Low Stock</Badge>;
+    case 'Out of Stock':
+      return <Badge variant="destructive">Out of Stock</Badge>;
     default:
       return <Badge variant="outline">Unknown</Badge>;
   }
@@ -39,7 +83,7 @@ const getStatusBadge = (status: string) => {
 
 const SparePartList: React.FC = () => {
   const { toast } = useToast();
-  const [parts, setParts] = useState(spareParts);
+  const [parts, setParts] = useState(mockSpareParts);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [partToDelete, setPartToDelete] = useState<string | null>(null);
 
@@ -50,7 +94,7 @@ const SparePartList: React.FC = () => {
 
   const confirmDelete = () => {
     if (partToDelete) {
-      const partName = parts.find(p => p.id === partToDelete)?.description || 'Spare Part';
+      const partName = parts.find(p => p.id === partToDelete)?.materialDescription || 'Spare Part';
       
       // Filter out the deleted spare part
       setParts(parts.filter(part => part.id !== partToDelete));
@@ -64,6 +108,11 @@ const SparePartList: React.FC = () => {
       setShowDeleteDialog(false);
       setPartToDelete(null);
     }
+  };
+
+  // Helper function to get equipment name by ID
+  const getEquipmentName = (id: string) => {
+    return equipmentData.find(e => e.id === id)?.equipmentDescription || 'Unknown Equipment';
   };
 
   return (
@@ -82,32 +131,34 @@ const SparePartList: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Equipment Name</TableHead>
               <TableHead>Material No.</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Price</TableHead>
+              <TableHead>Material Description</TableHead>
+              <TableHead>Stock (P/Min/Max)</TableHead>
+              <TableHead>Price (RM)</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {parts.map((part) => (
-              <TableRow key={part.id} className={part.currentStock < part.minStock ? "bg-red-50" : ""}>
-                <TableCell className="font-medium">{part.materialNo}</TableCell>
-                <TableCell>{part.description}</TableCell>
+              <TableRow key={part.id}>
+                <TableCell>{getEquipmentName(part.equipmentId)}</TableCell>
+                <TableCell className="font-medium">{part.materialNumber}</TableCell>
+                <TableCell>{part.materialDescription}</TableCell>
                 <TableCell>
-                  {part.currentStock < part.minStock ? (
+                  {parseInt(part.proposeStock) < parseInt(part.minimum) ? (
                     <span className="text-red-600 font-medium">
-                      {part.currentStock} / {part.minStock}
+                      {part.proposeStock}/{part.minimum}/{part.maximum}
                     </span>
                   ) : (
                     <span>
-                      {part.currentStock} / {part.minStock}
+                      {part.proposeStock}/{part.minimum}/{part.maximum}
                     </span>
                   )}
                 </TableCell>
-                <TableCell>${part.price}</TableCell>
-                <TableCell>{getStatusBadge(part.status)}</TableCell>
+                <TableCell>RM {part.price}</TableCell>
+                <TableCell>{getStatusBadge(part.stockStatus)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link to={`/spare-parts/${part.id}`}>
