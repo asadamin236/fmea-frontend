@@ -1,16 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { checkAuth, User } from '@/utils/auth';
+import { checkAuth, User, Team, getTeamById } from '@/utils/auth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/sonner";
+import { Badge } from "@/components/ui/badge";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [team, setTeam] = useState<Team | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   
@@ -25,6 +26,14 @@ const Profile = () => {
       setUser(user);
       setName(user.name);
       setEmail(user.email);
+      
+      // Get user's team data if available
+      if (user.teamId) {
+        const teamData = getTeamById(user.teamId);
+        if (teamData) {
+          setTeam(teamData);
+        }
+      }
     }
   }, [navigate]);
   
@@ -45,6 +54,14 @@ const Profile = () => {
     setUser(updatedUser);
     
     toast.success('Profile updated successfully');
+  };
+  
+  const getBadgeVariant = (role: string) => {
+    switch(role) {
+      case 'admin': return 'default';
+      case 'editor': return 'secondary';
+      default: return 'outline';
+    }
   };
   
   if (!user) {
@@ -89,7 +106,11 @@ const Profile = () => {
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Role</label>
-                  <Input value={user.role} readOnly disabled />
+                  <div className="py-2">
+                    <Badge variant={getBadgeVariant(user.role)}>
+                      {user.role}
+                    </Badge>
+                  </div>
                 </div>
                 
                 <Button type="submit">Save Changes</Button>
@@ -107,9 +128,15 @@ const Profile = () => {
                 <span>{user.id}</span>
               </div>
               <div>
-                <span className="block text-sm font-medium text-gray-500">Account Type</span>
-                <span className="capitalize">{user.role}</span>
+                <span className="block text-sm font-medium text-gray-500">Team</span>
+                <span>{team ? team.name : 'Not Assigned'}</span>
               </div>
+              {team && (
+                <div>
+                  <span className="block text-sm font-medium text-gray-500">Team Description</span>
+                  <span>{team.description}</span>
+                </div>
+              )}
               <div>
                 <span className="block text-sm font-medium text-gray-500">Member Since</span>
                 <span>May 2023</span>

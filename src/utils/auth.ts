@@ -1,12 +1,19 @@
-
 // Authentication system using localStorage
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'editor' | 'user';
+  teamId?: string;
   avatar?: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  description: string;
+  members: number;
 }
 
 export interface AuthState {
@@ -89,4 +96,38 @@ export const logoutUser = (): void => {
 export const isAdmin = (): boolean => {
   const { user } = checkAuth();
   return user?.role === 'admin';
+};
+
+// Get teams from local storage
+export const getTeams = (): Team[] => {
+  const storedTeams = localStorage.getItem('fmea_teams');
+  return storedTeams ? JSON.parse(storedTeams) : [];
+};
+
+// Get team by ID
+export const getTeamById = (id: string): Team | undefined => {
+  const teams = getTeams();
+  return teams.find(team => team.id === id);
+};
+
+// Get team members count
+export const getTeamMembersCount = (teamId: string): number => {
+  const storedUsers = localStorage.getItem('fmea_users');
+  if (!storedUsers) return 0;
+  
+  const users: User[] = JSON.parse(storedUsers);
+  return users.filter(user => user.teamId === teamId).length;
+};
+
+// Update teams member counts
+export const updateTeamMemberCounts = (): void => {
+  const teams = getTeams();
+  if (teams.length === 0) return;
+  
+  const updatedTeams = teams.map(team => ({
+    ...team,
+    members: getTeamMembersCount(team.id)
+  }));
+  
+  localStorage.setItem('fmea_teams', JSON.stringify(updatedTeams));
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -6,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { checkAuth, isAdmin, User } from '@/utils/auth';
+import { checkAuth, isAdmin, User, Team, getTeams, updateTeamMemberCounts } from '@/utils/auth';
 import { ArrowLeft, Save, UserRound } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
 const UserDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [editedUser, setEditedUser] = useState<User | null>(null);
   const [password, setPassword] = useState('');
@@ -30,6 +31,10 @@ const UserDetail = () => {
       toast.error("You don't have permission to access this page");
       return;
     }
+    
+    // Load teams
+    const teamsData = getTeams();
+    setTeams(teamsData);
     
     // Load user data
     const storedUsers = localStorage.getItem('fmea_users');
@@ -68,6 +73,9 @@ const UserDetail = () => {
         return;
       }
       
+      // Check if team has changed
+      const teamChanged = user?.teamId !== editedUser.teamId;
+      
       // Update user
       users = users.map(u => u.id === editedUser.id ? editedUser : u);
       localStorage.setItem('fmea_users', JSON.stringify(users));
@@ -79,9 +87,28 @@ const UserDetail = () => {
         localStorage.setItem('fmea_user_passwords', JSON.stringify(userPasswords));
       }
       
+      // Update team members count if team assignment changed
+      if (teamChanged) {
+        updateTeamMemberCounts();
+      }
+      
       setUser(editedUser);
       setEditMode(false);
       toast.success("User updated successfully");
+    }
+  };
+  
+  const getTeamName = (teamId?: string) => {
+    if (!teamId) return 'Not Assigned';
+    const team = teams.find(t => t.id === teamId);
+    return team ? team.name : 'Unknown Team';
+  };
+  
+  const getBadgeVariant = (role: string) => {
+    switch(role) {
+      case 'admin': return 'default';
+      case 'editor': return 'secondary';
+      default: return 'outline';
     }
   };
 
@@ -161,10 +188,25 @@ const UserDetail = () => {
                     <select
                       className="w-full rounded-md border border-gray-300 px-3 py-2"
                       value={editedUser?.role || 'user'}
-                      onChange={(e) => setEditedUser(prev => prev ? {...prev, role: e.target.value as 'admin' | 'user'} : null)}
+                      onChange={(e) => setEditedUser(prev => prev ? {...prev, role: e.target.value as 'admin' | 'editor' | 'user'} : null)}
                     >
                       <option value="user">User</option>
+                      <option value="editor">Editor</option>
                       <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Team</label>
+                    <select
+                      className="w-full rounded-md border border-gray-300 px-3 py-2"
+                      value={editedUser?.teamId || ''}
+                      onChange={(e) => setEditedUser(prev => prev ? {...prev, teamId: e.target.value || undefined} : null)}
+                    >
+                      <option value="">Not Assigned</option>
+                      {teams.map(team => (
+                        <option key={team.id} value={team.id}>{team.name}</option>
+                      ))}
                     </select>
                   </div>
                   
@@ -194,7 +236,16 @@ const UserDetail = () => {
                   
                   <div>
                     <p className="text-sm font-medium text-gray-500">Role</p>
-                    <p className="text-lg capitalize">{user.role}</p>
+                    <div className="mt-1">
+                      <Badge variant={getBadgeVariant(user.role)}>
+                        {user.role}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Team</p>
+                    <p className="text-lg">{getTeamName(user.teamId)}</p>
                   </div>
                   
                   <div>

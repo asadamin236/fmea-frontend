@@ -159,3 +159,12 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
+
+
+
+
+
+
+// Okay Now work on the Product@ProductDetail.tsx @Products.tsx @ProductForm.tsx 
+// Where I want a CRUD Having following Options Remove any other option if its there in The Products CRUD (Form View table). Also look into project if there is any CRUD available for the following Options Map it from there.
+//  System(From Components), Functions(List of Functions similiar to Components Module), Components will be automatically Map in a list(Just in view not in form) when we select the system, Failure Mode(List of modes similiar like Components Module), Failure Mechanism(Like Input), 

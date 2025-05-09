@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
-import { checkAuth, isAdmin, User } from '@/utils/auth';
+import { checkAuth, isAdmin, User, Team, getTeams, updateTeamMemberCounts } from '@/utils/auth';
 import { UserPlus, Trash2, UserRound, Eye, Edit } from 'lucide-react';
 import {
   AlertDialog,
@@ -19,26 +19,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 const Users = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const teamIdParam = queryParams.get('teamId');
+  
   const [users, setUsers] = useState<User[]>(() => {
     const storedUsers = localStorage.getItem('fmea_users');
     return storedUsers ? JSON.parse(storedUsers) : [];
   });
   
+  const [teams, setTeams] = useState<Team[]>([]);
   const [open, setOpen] = useState(false);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'user' as 'admin' | 'user'
+    role: 'user' as 'admin' | 'editor' | 'user',
+    teamId: teamIdParam || undefined
   });
   
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
-  React.useEffect(() => {
+  useEffect(() => {
     // Check if user is authenticated and is admin
     const { isAuthenticated, user } = checkAuth();
     if (!isAuthenticated) {
@@ -50,7 +57,19 @@ const Users = () => {
       navigate('/');
       toast.error("You don't have permission to access this page");
     }
-  }, [navigate]);
+    
+    // Load teams data
+    const teamsData = getTeams();
+    setTeams(teamsData);
+    
+    // If teamId is in URL, show notification
+    if (teamIdParam) {
+      const team = teamsData.find(t => t.id === teamIdParam);
+      if (team) {
+        toast.info(`Viewing users for team: ${team.name}`);
+      }
+    }
+  }, [navigate, teamIdParam]);
   
   const handleAddUser = () => {
     // Validate form
@@ -70,7 +89,8 @@ const Users = () => {
       id: Date.now().toString(),
       name: newUser.name,
       email: newUser.email,
-      role: newUser.role
+      role: newUser.role,
+      teamId: newUser.teamId
     };
     
     // Add user to "database"
@@ -83,12 +103,16 @@ const Users = () => {
     userPasswords[user.email] = newUser.password;
     localStorage.setItem('fmea_user_passwords', JSON.stringify(userPasswords));
     
+    // Update team members count
+    updateTeamMemberCounts();
+    
     // Reset form and close dialog
     setNewUser({
       name: '',
       email: '',
       password: '',
-      role: 'user'
+      role: 'user',
+      teamId: teamIdParam || undefined
     });
     setOpen(false);
     
@@ -102,10 +126,14 @@ const Users = () => {
   
   const confirmDelete = () => {
     if (userToDelete) {
-      const userName = users.find(u => u.id === userToDelete)?.name || 'User';
+      const user = users.find(u => u.id === userToDelete);
+      const userName = user?.name || 'User';
       const updatedUsers = users.filter(user => user.id !== userToDelete);
       setUsers(updatedUsers);
       localStorage.setItem('fmea_users', JSON.stringify(updatedUsers));
+      
+      // Update team members count
+      updateTeamMemberCounts();
       
       toast.success(`User ${userName} deleted successfully`);
       setShowDeleteDialog(false);
@@ -121,15 +149,42 @@ const Users = () => {
     navigate(`/users/${userId}`);
   };
   
+  const getTeamName = (teamId?: string) => {
+    if (!teamId) return 'Not Assigned';
+    const team = teams.find(t => t.id === teamId);
+    return team ? team.name : 'Unknown Team';
+  };
+  
+  const getBadgeVariant = (role: string) => {
+    switch(role) {
+      case 'admin': return 'default';
+      case 'editor': return 'secondary';
+      default: return 'outline';
+    }
+  };
+  
+  const filteredUsers = teamIdParam 
+    ? users.filter(user => user.teamId === teamIdParam)
+    : users;
+  
   return (
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Users Management</h1>
-          <Button onClick={() => setOpen(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
+          <h1 className="text-3xl font-bold">
+            {teamIdParam ? `${getTeamName(teamIdParam)} - Users` : 'Users Management'}
+          </h1>
+          <div className="space-x-2">
+            {teamIdParam && (
+              <Button variant="outline" onClick={() => navigate('/teams')}>
+                Back to Teams
+              </Button>
+            )}
+            <Button onClick={() => setOpen(true)}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
+          </div>
         </div>
         
         <Card>
@@ -143,20 +198,26 @@ const Users = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Team</TableHead>
                   <TableHead className="w-[160px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.length === 0 ? (
+                {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center">No users found</TableCell>
+                    <TableCell colSpan={5} className="text-center">No users found</TableCell>
                   </TableRow>
                 ) : (
-                  users.map(user => (
+                  filteredUsers.map(user => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.role}</TableCell>
+                      <TableCell>
+                        <Badge variant={getBadgeVariant(user.role)}>
+                          {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{getTeamName(user.teamId)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-1">
                           <Button
@@ -236,10 +297,25 @@ const Users = () => {
                 id="role"
                 className="w-full rounded-md border border-gray-300 px-3 py-2"
                 value={newUser.role}
-                onChange={e => setNewUser({...newUser, role: e.target.value as 'admin' | 'user'})}
+                onChange={e => setNewUser({...newUser, role: e.target.value as 'admin' | 'editor' | 'user'})}
               >
                 <option value="user">User</option>
+                <option value="editor">Editor</option>
                 <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="team" className="block text-sm font-medium text-gray-700">Team</label>
+              <select 
+                id="team"
+                className="w-full rounded-md border border-gray-300 px-3 py-2"
+                value={newUser.teamId || ''}
+                onChange={e => setNewUser({...newUser, teamId: e.target.value || undefined})}
+              >
+                <option value="">Not Assigned</option>
+                {teams.map(team => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
               </select>
             </div>
           </div>
