@@ -23,13 +23,13 @@ const Settings = () => {
         
         <Tabs defaultValue="general">
           <TabsList className="mb-6">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            {/* <TabsTrigger value="general">General</TabsTrigger> */}
+            {/* <TabsTrigger value="notifications">Notifications</TabsTrigger> */}
             <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            {/* <TabsTrigger value="appearance">Appearance</TabsTrigger> */}
           </TabsList>
           
-          <TabsContent value="general">
+          {/* <TabsContent value="general">
             <Card>
               <CardHeader>
                 <CardTitle>General Settings</CardTitle>
@@ -66,9 +66,9 @@ const Settings = () => {
                 <Button onClick={handleSave}>Save Changes</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
           
-          <TabsContent value="notifications">
+          {/* <TabsContent value="notifications">
             <Card>
               <CardHeader>
                 <CardTitle>Notification Settings</CardTitle>
@@ -100,7 +100,7 @@ const Settings = () => {
                 <Button onClick={handleSave}>Save Preferences</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
           
           <TabsContent value="security">
             <Card>
@@ -119,21 +119,21 @@ const Settings = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                   {/* <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium">Two-Factor Authentication</h4>
                       <p className="text-sm text-gray-500">Add an extra layer of security</p>
                     </div>
                     <Switch />
-                  </div>
+                  </div>  */}
                 </div>
                 
                 <Button onClick={handleSave}>Update Security</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> 
           
-          <TabsContent value="appearance">
+          {/* <TabsContent value="appearance">
             <Card>
               <CardHeader>
                 <CardTitle>Appearance Settings</CardTitle>
@@ -162,7 +162,7 @@ const Settings = () => {
                 <Button onClick={handleSave}>Save Preferences</Button>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </div>
     </Layout>

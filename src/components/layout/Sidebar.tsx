@@ -5,7 +5,7 @@ import { BarChart2, Settings, Database, FileText, User, Users, Settings as Setti
 
 const Sidebar = () => {
   return (
-    <aside className="hidden md:block w-64 h-screen bg-sidebar text-sidebar-foreground fixed left-0 top-16 p-4">
+    <aside className="hidden md:block w-64 h-screen bg-sidebar text-sidebar-foreground fixed left-0 top-16 p-4 overflow-y-auto pb-24">
       <nav className="space-y-6">
         <div>
           <h3 className="text-xs uppercase text-sidebar-foreground/70 font-semibold mb-2 px-4">Main</h3>
