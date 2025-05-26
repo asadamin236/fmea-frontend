@@ -1,4 +1,3 @@
-
 import { Equipment, EquipmentType, Manufacturer, EquipmentFunction, EquipmentClass } from "@/types/equipment-types";
 
 export const equipmentClasses: EquipmentClass[] = [
@@ -10,11 +9,36 @@ export const equipmentClasses: EquipmentClass[] = [
 ];
 
 export const equipmentTypes: EquipmentType[] = [
-  { id: "1", name: "Moisture Analyzer" },
-  { id: "2", name: "Temperature Meter" },
-  { id: "3", name: "Pressure Sensor" },
-  { id: "4", name: "Flow Meter" },
-  { id: "5", name: "Level Indicator" },
+  { 
+    id: "1", 
+    name: "Moisture Analyzer",
+    equipmentClassId: "1",
+    systems: []
+  },
+  { 
+    id: "2", 
+    name: "Temperature Meter",
+    equipmentClassId: "2", 
+    systems: []
+  },
+  { 
+    id: "3", 
+    name: "Pressure Sensor",
+    equipmentClassId: "3",
+    systems: []
+  },
+  { 
+    id: "4", 
+    name: "Flow Meter",
+    equipmentClassId: "5",
+    systems: []
+  },
+  { 
+    id: "5", 
+    name: "Level Indicator",
+    equipmentClassId: "4",
+    systems: []
+  },
 ];
 
 export const manufacturers: Manufacturer[] = [
