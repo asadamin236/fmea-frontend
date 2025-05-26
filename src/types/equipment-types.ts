@@ -6,6 +6,9 @@ export interface EquipmentClass {
   id: string;
   name: string;
   description?: string;
+  lastReviewed?: string;
+  reviewerList?: string;
+  classEngineeringDiscipline?: string;
 }
 
 export interface EquipmentFunction {
@@ -13,10 +16,31 @@ export interface EquipmentFunction {
   description: string;
 }
 
+export interface Subcomponent {
+  id: string;
+  name: string;
+  remarks?: string;
+}
+
+export interface Component {
+  id: string;
+  name: string;
+  subcomponents: Subcomponent[];
+  remarks?: string;
+}
+
+export interface System {
+  id: string;
+  name: string;
+  components: Component[];
+}
+
 export interface EquipmentType {
   id: string;
   name: string;
   description?: string;
+  equipmentClassId: string;
+  systems: System[];
 }
 
 export interface Manufacturer {
@@ -45,4 +69,42 @@ export interface Equipment {
   equipmentClass: string;
   equipmentFunctions: EquipmentFunction[];
   numberOfUnits: number;
+  taskListMapping?: TaskMapping[];
+}
+
+export interface Task {
+  id: string;
+  taskList: string;
+  sapGTL: string;
+  mainWorkCenter: string;
+  interval: string;
+  taskType: 'PM' | 'PPM' | 'CM' | 'Other';
+  taskDescription: string;
+  numberOfPerson: number;
+  manHour: number;
+  equipmentClassId: string;
+}
+
+export interface TaskMapping {
+  taskId: string;
+  isSelected: boolean;
+}
+
+export interface FailureMechanism {
+  id: string;
+  name: string;
+}
+
+export interface FailureCause {
+  id: string;
+  causeName: string;
+  causeCode: string;
+  causeDescription: string;
+}
+
+export interface FailureMode {
+  id: string;
+  category: string;
+  subCategory: string;
+  description: string;
 }
