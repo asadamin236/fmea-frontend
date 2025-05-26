@@ -9,9 +9,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { equipmentClasses } from '@/data/equipmentData';
 import { EquipmentClass } from '@/types/equipment-types';
 import {
@@ -27,7 +27,7 @@ import {
 
 const EquipmentClassList: React.FC = () => {
   const { toast } = useToast();
-  const [classes, setClasses] = useState<EquipmentClass[]>(equipmentClasses);
+  const [classList, setClassList] = useState<EquipmentClass[]>(equipmentClasses);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -38,12 +38,10 @@ const EquipmentClassList: React.FC = () => {
 
   const confirmDelete = () => {
     if (itemToDelete) {
-      const itemName = classes.find(e => e.id === itemToDelete)?.name || 'Equipment Class';
+      const itemName = classList.find(c => c.id === itemToDelete)?.name || 'Equipment Class';
       
-      // Filter out the deleted class
-      setClasses(classes.filter(item => item.id !== itemToDelete));
+      setClassList(classList.filter(item => item.id !== itemToDelete));
       
-      // Show toast notification
       toast({
         title: "Equipment Class Deleted",
         description: `${itemName} has been deleted successfully`,
@@ -70,25 +68,26 @@ const EquipmentClassList: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Class Name</TableHead>
-              <TableHead>Last Reviewed</TableHead>
-              <TableHead>Reviewer List</TableHead>
-              <TableHead>Class Description</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Engineering Discipline</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {classes.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>N/A</TableCell>
-                <TableCell>N/A</TableCell>
-                <TableCell>{item.description || 'N/A'}</TableCell>
-                <TableCell>N/A</TableCell>
+            {classList.map((equipmentClass) => (
+              <TableRow key={equipmentClass.id}>
+                <TableCell className="font-medium">{equipmentClass.name}</TableCell>
+                <TableCell>{equipmentClass.description || 'No description'}</TableCell>
+                <TableCell>{equipmentClass.classEngineeringDiscipline || 'Not specified'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Link to={`/equipment-classes/${item.id}/edit`}>
+                    <Link to={`/equipment-classes/${equipmentClass.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link to={`/equipment-classes/${equipmentClass.id}/edit`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -96,7 +95,7 @@ const EquipmentClassList: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleDeleteClick(item.id)}
+                      onClick={() => handleDeleteClick(equipmentClass.id)}
                       className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -114,8 +113,8 @@ const EquipmentClassList: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to delete this equipment class?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the equipment class.
-              Any equipment using this class may be affected.
+              This action cannot be undone. This will permanently delete the equipment class
+              and remove it from all equipment mappings.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -123,7 +122,7 @@ const EquipmentClassList: React.FC = () => {
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
               Delete
             </AlertDialogAction>
-            </AlertDialogFooter>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

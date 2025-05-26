@@ -9,9 +9,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash2, ExternalLink } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Eye, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { manufacturers } from '@/data/equipmentData';
 import { Manufacturer } from '@/types/equipment-types';
 import {
@@ -40,10 +40,8 @@ const ManufacturerList: React.FC = () => {
     if (itemToDelete) {
       const itemName = manufacturerList.find(m => m.id === itemToDelete)?.name || 'Manufacturer';
       
-      // Filter out the deleted manufacturer
       setManufacturerList(manufacturerList.filter(item => item.id !== itemToDelete));
       
-      // Show toast notification
       toast({
         title: "Manufacturer Deleted",
         description: `${itemName} has been deleted successfully`,
@@ -77,26 +75,33 @@ const ManufacturerList: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {manufacturerList.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>{item.contactInfo || 'N/A'}</TableCell>
+            {manufacturerList.map((manufacturer) => (
+              <TableRow key={manufacturer.id}>
+                <TableCell className="font-medium">{manufacturer.name}</TableCell>
+                <TableCell>{manufacturer.contactInfo || 'No contact info'}</TableCell>
                 <TableCell>
-                  {item.website ? (
+                  {manufacturer.website ? (
                     <a 
-                      href={item.website} 
+                      href={manufacturer.website} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center text-blue-600 hover:underline"
+                      className="inline-flex items-center text-blue-600 hover:text-blue-800"
                     >
-                      {item.website}
-                      <ExternalLink className="ml-1 h-3 w-3" />
+                      Visit
+                      <ExternalLink className="h-3 w-3 ml-1" />
                     </a>
-                  ) : 'N/A'}
+                  ) : (
+                    'No website'
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Link to={`/manufacturers/${item.id}/edit`}>
+                    <Link to={`/manufacturers/${manufacturer.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link to={`/manufacturers/${manufacturer.id}/edit`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -104,7 +109,7 @@ const ManufacturerList: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleDeleteClick(item.id)}
+                      onClick={() => handleDeleteClick(manufacturer.id)}
                       className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -122,8 +127,8 @@ const ManufacturerList: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to delete this manufacturer?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the manufacturer.
-              Any equipment associated with this manufacturer may be affected.
+              This action cannot be undone. This will permanently delete the manufacturer
+              and remove it from all equipment mappings.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
