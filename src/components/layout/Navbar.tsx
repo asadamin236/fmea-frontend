@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,7 +30,7 @@ const Navbar = () => {
             <Menu className="h-5 w-5" />
           </Button>
           <Link to="/" className="flex items-center">
-            <span className="text-lg font-bold">FMEA Risk Insight System</span>
+            <span className="text-lg font-bold">DWTask AMS - FMEA</span>
           </Link>
         </div>
         

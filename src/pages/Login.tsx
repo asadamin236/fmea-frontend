@@ -38,7 +38,7 @@ const Login = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">FMEA Risk Insight System</CardTitle>
+          <CardTitle className="text-2xl font-bold">DWTask AMS - FMEA</CardTitle>
           <CardDescription>Login to access your dashboard</CardDescription>
         </CardHeader>
         <CardContent>
@@ -76,7 +76,7 @@ const Login = () => {
           </form>
         </CardContent>
         <CardFooter className="text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} FMEA Risk Insight System
+          © {new Date().getFullYear()} DWTask AMS - FMEA
         </CardFooter>
       </Card>
     </div>
