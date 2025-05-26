@@ -1,4 +1,4 @@
-import { Equipment, EquipmentType, Manufacturer, EquipmentFunction, EquipmentClass } from "@/types/equipment-types";
+import { Equipment, EquipmentType, Manufacturer, EquipmentFunction, EquipmentClass, Task, FailureMechanism, FailureCause, FailureMode } from "@/types/equipment-types";
 
 export const equipmentClasses: EquipmentClass[] = [
   { id: "1", name: "Moisture Analyzer", description: "Devices used to measure moisture content" },
@@ -118,4 +118,85 @@ export const equipmentData: Equipment[] = [
     equipmentFunctions: [{ id: "1", description: "Moisture Analysis" }],
     numberOfUnits: 1
   }
+];
+
+export const tasks: Task[] = [
+  {
+    id: "1",
+    taskList: "TL-001",
+    sapGTL: "GTL001",
+    mainWorkCenter: "WC001",
+    interval: "Monthly",
+    taskType: "PM",
+    taskDescription: "Calibrate moisture analyzer sensor",
+    numberOfPerson: 2,
+    manHour: 4,
+    equipmentClassId: "1"
+  },
+  {
+    id: "2",
+    taskList: "TL-002",
+    sapGTL: "GTL002",
+    mainWorkCenter: "WC001",
+    interval: "Quarterly",
+    taskType: "PPM",
+    taskDescription: "Replace moisture analyzer filter",
+    numberOfPerson: 1,
+    manHour: 2,
+    equipmentClassId: "1"
+  },
+  {
+    id: "3",
+    taskList: "TL-003",
+    sapGTL: "GTL003",
+    mainWorkCenter: "WC002",
+    interval: "Weekly",
+    taskType: "PM",
+    taskDescription: "Check temperature sensor readings",
+    numberOfPerson: 1,
+    manHour: 1,
+    equipmentClassId: "2"
+  },
+  {
+    id: "4",
+    taskList: "TL-004",
+    sapGTL: "GTL004",
+    mainWorkCenter: "WC003",
+    interval: "Monthly",
+    taskType: "PM",
+    taskDescription: "Pressure gauge calibration",
+    numberOfPerson: 2,
+    manHour: 3,
+    equipmentClassId: "3"
+  }
+];
+
+export const failureMechanisms: FailureMechanism[] = [
+  { id: "1", name: "Corrosion" },
+  { id: "2", name: "Erosion" },
+  { id: "3", name: "Fatigue" },
+  { id: "4", name: "Wear" },
+  { id: "5", name: "Vibration" },
+  { id: "6", name: "Overheating" },
+  { id: "7", name: "Fouling" },
+  { id: "8", name: "Blockage" },
+];
+
+export const failureCauses: FailureCause[] = [
+  { id: "1", causeName: "High Temperature", causeCode: "HT001", causeDescription: "Operating temperature exceeds design limits" },
+  { id: "2", causeName: "Chemical Attack", causeCode: "CA001", causeDescription: "Corrosive chemicals affecting material integrity" },
+  { id: "3", causeName: "Poor Maintenance", causeCode: "PM001", causeDescription: "Inadequate or delayed maintenance activities" },
+  { id: "4", causeName: "Design Flaw", causeCode: "DF001", causeDescription: "Inherent design deficiency" },
+  { id: "5", causeName: "Material Defect", causeCode: "MD001", causeDescription: "Manufacturing or material quality issues" },
+];
+
+export const failureModes: FailureMode[] = [
+  { id: "1", category: "Mechanical", subCategory: "Structural", description: "Crack initiation and propagation" },
+  { id: "2", category: "Mechanical", subCategory: "Structural", description: "Deformation beyond elastic limit" },
+  { id: "3", category: "Mechanical", subCategory: "Wear", description: "Surface material loss due to friction" },
+  { id: "4", category: "Electrical", subCategory: "Insulation", description: "Insulation breakdown" },
+  { id: "5", category: "Electrical", subCategory: "Connection", description: "Loose electrical connections" },
+  { id: "6", category: "Process", subCategory: "Flow", description: "Reduced flow capacity" },
+  { id: "7", category: "Process", subCategory: "Pressure", description: "Pressure loss or gain beyond limits" },
+  { id: "8", category: "Instrumentation", subCategory: "Calibration", description: "Measurement drift or inaccuracy" },
 ];
