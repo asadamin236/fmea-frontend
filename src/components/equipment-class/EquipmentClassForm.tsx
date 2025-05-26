@@ -20,8 +20,11 @@ import { equipmentClasses } from '@/data/equipmentData';
 import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
+  className: z.string().min(1, 'Class name is required'),
+  lastReviewed: z.string().optional(),
+  reviewerList: z.string().optional(),
+  classDescription: z.string().optional(),
+  classEngineeringDiscipline: z.string().optional(),
 });
 
 const EquipmentClassForm: React.FC = () => {
@@ -33,8 +36,11 @@ const EquipmentClassForm: React.FC = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      description: '',
+      className: '',
+      lastReviewed: '',
+      reviewerList: '',
+      classDescription: '',
+      classEngineeringDiscipline: '',
     },
   });
 
@@ -44,8 +50,11 @@ const EquipmentClassForm: React.FC = () => {
       const equipmentClass = equipmentClasses.find(e => e.id === id);
       if (equipmentClass) {
         form.reset({
-          name: equipmentClass.name,
-          description: equipmentClass.description || '',
+          className: equipmentClass.name,
+          lastReviewed: '',
+          reviewerList: '',
+          classDescription: equipmentClass.description || '',
+          classEngineeringDiscipline: '',
         });
       }
     }
@@ -56,7 +65,7 @@ const EquipmentClassForm: React.FC = () => {
     
     toast({
       title: isEdit ? "Equipment Class Updated" : "Equipment Class Created",
-      description: `${values.name} has been ${isEdit ? 'updated' : 'created'} successfully`,
+      description: `${values.className} has been ${isEdit ? 'updated' : 'created'} successfully`,
     });
     
     navigate('/equipment-classes');
@@ -77,10 +86,10 @@ const EquipmentClassForm: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow">
             <FormField
               control={form.control}
-              name="name"
+              name="className"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Class Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter equipment class name" {...field} />
                   </FormControl>
@@ -91,14 +100,66 @@ const EquipmentClassForm: React.FC = () => {
             
             <FormField
               control={form.control}
-              name="description"
+              name="lastReviewed"
               render={({ field }) => (
                 <FormItem className="mt-4">
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Last Reviewed</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date"
+                      placeholder="Select last reviewed date" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="reviewerList"
+              render={({ field }) => (
+                <FormItem className="mt-4">
+                  <FormLabel>Reviewer List</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter reviewer names (comma separated)" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="classDescription"
+              render={({ field }) => (
+                <FormItem className="mt-4">
+                  <FormLabel>Class Description</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Enter description" 
+                      placeholder="Enter class description" 
                       className="resize-none" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="classEngineeringDiscipline"
+              render={({ field }) => (
+                <FormItem className="mt-4">
+                  <FormLabel>Class Engineering Discipline</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter engineering discipline" 
                       {...field} 
                     />
                   </FormControl>

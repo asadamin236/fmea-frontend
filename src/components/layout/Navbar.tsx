@@ -1,3 +1,4 @@
+
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,10 @@ const Navbar = () => {
         
         <div className="hidden md:flex items-center space-x-6">
           <Link to="/" className="hover:text-primary-foreground/80 transition-colors">Dashboard</Link>
-          <Link to="/products" className="hover:text-primary-foreground/80 transition-colors">Products</Link>
+          <Link to="/equipment-classes" className="hover:text-primary-foreground/80 transition-colors">Equipment Class</Link>
+          <Link to="/equipment-types" className="hover:text-primary-foreground/80 transition-colors">Equipment Boundary</Link>
+          <Link to="/equipment" className="hover:text-primary-foreground/80 transition-colors">Equipment List</Link>
+          <Link to="/products" className="hover:text-primary-foreground/80 transition-colors">Medium</Link>
           <Link to="/components" className="hover:text-primary-foreground/80 transition-colors">Components</Link>
           <Link to="/failure-modes" className="hover:text-primary-foreground/80 transition-colors">Failure Modes</Link>
           <Link to="/spare-parts" className="hover:text-primary-foreground/80 transition-colors">Spare Parts</Link>

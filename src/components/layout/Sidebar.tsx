@@ -17,9 +17,27 @@ const Sidebar = () => {
               </Link>
             </li>
             <li>
+              <Link to="/equipment-classes" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                <Database className="mr-3 h-5 w-5" />
+                <span>Equipment Class</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/equipment-types" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                <Database className="mr-3 h-5 w-5" />
+                <span>Equipment Boundary</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/equipment" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+                <Database className="mr-3 h-5 w-5" />
+                <span>Equipment List</span>
+              </Link>
+            </li>
+            <li>
               <Link to="/products" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
                 <Database className="mr-3 h-5 w-5" />
-                <span>Products</span>
+                <span>Medium</span>
               </Link>
             </li>
             <li>
@@ -28,30 +46,12 @@ const Sidebar = () => {
                 <span>Components</span>
               </Link>
             </li>
-            <li>
-              <Link to="/equipment" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
-                <Database className="mr-3 h-5 w-5" />
-                <span>Equipment</span>
-              </Link>
-            </li>
           </ul>
         </div>
         
         <div>
           <h3 className="text-xs uppercase text-sidebar-foreground/70 font-semibold mb-2 px-4">Equipment Management</h3>
           <ul className="space-y-1">
-            <li>
-              <Link to="/equipment-classes" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
-                <Database className="mr-3 h-5 w-5" />
-                <span>Equipment Classes</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/equipment-types" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
-                <Database className="mr-3 h-5 w-5" />
-                <span>Equipment Types</span>
-              </Link>
-            </li>
             <li>
               <Link to="/manufacturers" className="flex items-center px-4 py-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
                 <FileText className="mr-3 h-5 w-5" />

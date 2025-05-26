@@ -70,8 +70,11 @@ const EquipmentClassList: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
+              <TableHead>Class Name</TableHead>
+              <TableHead>Last Reviewed</TableHead>
+              <TableHead>Reviewer List</TableHead>
+              <TableHead>Class Description</TableHead>
+              <TableHead>Engineering Discipline</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -79,7 +82,10 @@ const EquipmentClassList: React.FC = () => {
             {classes.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell>N/A</TableCell>
+                <TableCell>N/A</TableCell>
                 <TableCell>{item.description || 'N/A'}</TableCell>
+                <TableCell>N/A</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link to={`/equipment-classes/${item.id}/edit`}>
@@ -117,7 +123,7 @@ const EquipmentClassList: React.FC = () => {
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
               Delete
             </AlertDialogAction>
-          </AlertDialogFooter>
+            </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
