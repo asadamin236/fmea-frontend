@@ -5,55 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Edit } from 'lucide-react';
-import { FMEA } from '@/types/fmea-analysis-types';
-
-// Mock data - same as in FMEAList
-const mockFMEAData: FMEA = {
-  id: 'fmea-001',
-  components: ['Pump', 'Motor'],
-  mainEquipment: 'EQ-001',
-  operatingCondition: 'Normal Operation',
-  availabilityTarget: 95,
-  redundancy: 'None',
-  fmeaNumber: 'FMEA-2024-001',
-  preparedBy: 'John Doe',
-  lastUpdatedBy: 'John Doe',
-  fmeaDate: '2024-01-15',
-  revision: 'Rev 1',
-  failureModeCategory: 'Mechanical',
-  additionalDescription: 'Primary pump failure analysis',
-  failureMechanism: 'Wear',
-  failureCause: 'Poor Maintenance',
-  failureCauseDescription: 'Inadequate lubrication schedule',
-  failureEffect: 'Pump failure leading to production stop',
-  failureConsequences: ['Production Loss', 'Safety Risk'],
-  consequencePeople: 'A2',
-  consequenceEnvironment: 'B1',
-  consequenceAsset: 'C3',
-  consequenceReputation: 'B2',
-  probability: 'Possible(P)',
-  mitigatedRisk: 'B2',
-  mitigationActions: ['Improve maintenance schedule', 'Install backup pump'],
-  spareParts: 'Y',
-  taskType: 'PM',
-  frequency: 'Monthly',
-  mainWorkCenter: 'WC-001',
-  isShutdownRequired: true,
-  mitigatedRiskRating: 'B1',
-  taskOriginReferences: 'Maintenance Manual Section 5',
-  remarks: 'Critical equipment requiring immediate attention',
-  createdAt: '2024-01-15T10:00:00Z',
-  updatedAt: '2024-01-15T10:00:00Z'
-};
+import { getFMEAById, getEquipmentName, getWorkCenterName, getTaskTypeName } from '@/services/mockDataService';
 
 const FMEADetail: React.FC = () => {
   const { id } = useParams();
   
-  // In a real app, you would fetch the FMEA data based on the ID
-  const fmea = mockFMEAData;
+  // Get FMEA data from centralized service
+  const fmea = getFMEAById(id || '');
 
   if (!fmea) {
-    return <div>FMEA not found</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">FMEA Not Found</h1>
+          <p className="text-gray-600 mb-4">The requested FMEA analysis could not be found.</p>
+          <Link to="/fmea-analysis">
+            <Button>Back to FMEA List</Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -87,7 +58,7 @@ const FMEADetail: React.FC = () => {
               <span className="font-medium">FMEA Number:</span> {fmea.fmeaNumber}
             </div>
             <div>
-              <span className="font-medium">Main Equipment:</span> {fmea.mainEquipment}
+              <span className="font-medium">Main Equipment:</span> {getEquipmentName(fmea.mainEquipment)}
             </div>
             <div>
               <span className="font-medium">Operating Condition:</span> {fmea.operatingCondition}
@@ -167,19 +138,27 @@ const FMEADetail: React.FC = () => {
           <CardContent className="space-y-3">
             <div>
               <span className="font-medium">Consequence (People):</span> 
-              <Badge className="ml-2">{fmea.consequencePeople}</Badge>
+              <Badge className="ml-2" variant={fmea.consequencePeople?.startsWith('A') ? 'destructive' : 'secondary'}>
+                {fmea.consequencePeople}
+              </Badge>
             </div>
             <div>
               <span className="font-medium">Consequence (Environment):</span> 
-              <Badge className="ml-2">{fmea.consequenceEnvironment}</Badge>
+              <Badge className="ml-2" variant={fmea.consequenceEnvironment?.startsWith('A') ? 'destructive' : 'secondary'}>
+                {fmea.consequenceEnvironment}
+              </Badge>
             </div>
             <div>
               <span className="font-medium">Consequence (Asset):</span> 
-              <Badge className="ml-2">{fmea.consequenceAsset}</Badge>
+              <Badge className="ml-2" variant={fmea.consequenceAsset?.startsWith('A') ? 'destructive' : 'secondary'}>
+                {fmea.consequenceAsset}
+              </Badge>
             </div>
             <div>
               <span className="font-medium">Consequence (Reputation):</span> 
-              <Badge className="ml-2">{fmea.consequenceReputation}</Badge>
+              <Badge className="ml-2" variant={fmea.consequenceReputation?.startsWith('A') ? 'destructive' : 'secondary'}>
+                {fmea.consequenceReputation}
+              </Badge>
             </div>
             <div>
               <span className="font-medium">Probability:</span> 
@@ -237,13 +216,13 @@ const FMEADetail: React.FC = () => {
               </Badge>
             </div>
             <div>
-              <span className="font-medium">Task Type:</span> {fmea.taskType}
+              <span className="font-medium">Task Type:</span> {getTaskTypeName(fmea.taskType)}
             </div>
             <div>
               <span className="font-medium">Frequency:</span> {fmea.frequency}
             </div>
             <div>
-              <span className="font-medium">Main Work Center:</span> {fmea.mainWorkCenter}
+              <span className="font-medium">Main Work Center:</span> {getWorkCenterName(fmea.mainWorkCenter)}
             </div>
             <div>
               <span className="font-medium">Shutdown Required:</span> 

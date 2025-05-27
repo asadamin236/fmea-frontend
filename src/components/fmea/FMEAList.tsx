@@ -23,51 +23,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-// Mock data
-const mockFMEAData: FMEA[] = [
-  {
-    id: 'fmea-001',
-    components: ['Pump', 'Motor'],
-    mainEquipment: 'EQ-001',
-    operatingCondition: 'Normal Operation',
-    availabilityTarget: 95,
-    redundancy: 'None',
-    fmeaNumber: 'FMEA-2024-001',
-    preparedBy: 'John Doe',
-    lastUpdatedBy: 'John Doe',
-    fmeaDate: '2024-01-15',
-    revision: 'Rev 1',
-    failureModeCategory: 'Mechanical',
-    additionalDescription: 'Primary pump failure analysis',
-    failureMechanism: 'Wear',
-    failureCause: 'Poor Maintenance',
-    failureCauseDescription: 'Inadequate lubrication schedule',
-    failureEffect: 'Pump failure leading to production stop',
-    failureConsequences: ['Production Loss', 'Safety Risk'],
-    consequencePeople: 'A2',
-    consequenceEnvironment: 'B1',
-    consequenceAsset: 'C3',
-    consequenceReputation: 'B2',
-    probability: 'Possible(P)',
-    mitigatedRisk: 'B2',
-    mitigationActions: ['Improve maintenance schedule', 'Install backup pump'],
-    spareParts: 'Y',
-    taskType: 'PM',
-    frequency: 'Monthly',
-    mainWorkCenter: 'WC-001',
-    isShutdownRequired: true,
-    mitigatedRiskRating: 'B1',
-    taskOriginReferences: 'Maintenance Manual Section 5',
-    remarks: 'Critical equipment requiring immediate attention',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-15T10:00:00Z'
-  }
-];
+import { getFMEAList, getEquipmentName, getWorkCenterName, getTaskTypeName } from '@/services/mockDataService';
 
 const FMEAList: React.FC = () => {
   const { toast } = useToast();
-  const [fmeaList, setFMEAList] = useState<FMEA[]>(mockFMEAData);
+  const [fmeaList, setFMEAList] = useState<FMEA[]>(getFMEAList());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -112,6 +72,8 @@ const FMEAList: React.FC = () => {
               <TableHead>Main Equipment</TableHead>
               <TableHead>Failure Mode Category</TableHead>
               <TableHead>Risk Rating</TableHead>
+              <TableHead>Task Type</TableHead>
+              <TableHead>Work Center</TableHead>
               <TableHead>Prepared By</TableHead>
               <TableHead>Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -121,9 +83,21 @@ const FMEAList: React.FC = () => {
             {fmeaList.map((fmea) => (
               <TableRow key={fmea.id}>
                 <TableCell className="font-medium">{fmea.fmeaNumber}</TableCell>
-                <TableCell>{fmea.mainEquipment}</TableCell>
+                <TableCell>{getEquipmentName(fmea.mainEquipment)}</TableCell>
                 <TableCell>{fmea.failureModeCategory}</TableCell>
-                <TableCell>{fmea.mitigatedRiskRating}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    fmea.mitigatedRiskRating?.startsWith('A') ? 'bg-red-100 text-red-800' :
+                    fmea.mitigatedRiskRating?.startsWith('B') ? 'bg-orange-100 text-orange-800' :
+                    fmea.mitigatedRiskRating?.startsWith('C') ? 'bg-yellow-100 text-yellow-800' :
+                    fmea.mitigatedRiskRating?.startsWith('D') ? 'bg-blue-100 text-blue-800' :
+                    'bg-green-100 text-green-800'
+                  }`}>
+                    {fmea.mitigatedRiskRating}
+                  </span>
+                </TableCell>
+                <TableCell>{getTaskTypeName(fmea.taskType)}</TableCell>
+                <TableCell>{getWorkCenterName(fmea.mainWorkCenter)}</TableCell>
                 <TableCell>{fmea.preparedBy}</TableCell>
                 <TableCell>{new Date(fmea.fmeaDate).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">

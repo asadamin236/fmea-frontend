@@ -11,32 +11,56 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { FMEA, RISK_MATRIX_VALUES, PROBABILITY_VALUES, TASK_TYPES } from '@/types/fmea-analysis-types';
-
-// Mock data - replace with actual data fetching
-const mockComponents = ['Pump', 'Motor', 'Valve', 'Sensor'];
-const mockEquipment = ['EQ-001', 'EQ-002', 'EQ-003'];
-const mockFailureMechanisms = ['Wear', 'Corrosion', 'Fatigue'];
-const mockFailureCauses = ['Poor Maintenance', 'Age', 'Environmental'];
-const mockConsequences = ['Production Loss', 'Safety Risk', 'Environmental Impact'];
-const mockWorkCenters = ['WC-001', 'WC-002', 'WC-003'];
+import { FMEA, RISK_MATRIX_VALUES, PROBABILITY_VALUES } from '@/types/fmea-analysis-types';
+import { 
+  getEquipmentList, 
+  getComponentsList, 
+  getFailureMechanisms, 
+  getFailureCauses, 
+  getWorkCenters, 
+  getTaskTypes,
+  getFailureConsequences,
+  getMitigationActions,
+  getFMEAById
+} from '@/services/mockDataService';
 
 interface FMEAFormProps {
   initialData?: FMEA;
   isEdit?: boolean;
 }
 
-const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
+const FMEAForm: React.FC<FMEAFormProps> = ({ isEdit = false }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
+  
+  // Get data from centralized service
+  const equipmentList = getEquipmentList();
+  const componentsList = getComponentsList();
+  const failureMechanisms = getFailureMechanisms();
+  const failureCauses = getFailureCauses();
+  const workCenters = getWorkCenters();
+  const taskTypes = getTaskTypes();
+  const availableConsequences = getFailureConsequences();
+  const availableActions = getMitigationActions();
+
   const [formData, setFormData] = useState<Partial<FMEA>>({
     components: [],
     failureConsequences: [],
     mitigationActions: [],
     spareParts: 'N',
     isShutdownRequired: false,
-    ...initialData
   });
+
+  // Load existing data for edit mode
+  useEffect(() => {
+    if (isEdit && id) {
+      const existingFMEA = getFMEAById(id);
+      if (existingFMEA) {
+        setFormData(existingFMEA);
+      }
+    }
+  }, [isEdit, id]);
 
   const [newConsequence, setNewConsequence] = useState('');
   const [newMitigationAction, setNewMitigationAction] = useState('');
@@ -46,7 +70,7 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
   };
 
   const handleArrayAdd = (field: 'components' | 'failureConsequences' | 'mitigationActions', value: string) => {
-    if (value.trim()) {
+    if (value.trim() && !(formData[field] as string[])?.includes(value.trim())) {
       setFormData(prev => ({
         ...prev,
         [field]: [...(prev[field] || []), value.trim()]
@@ -67,7 +91,7 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
     e.preventDefault();
     
     const fmeaData: FMEA = {
-      id: isEdit ? initialData?.id || '' : `fmea-${Date.now()}`,
+      id: isEdit ? id || '' : `fmea-${Date.now()}`,
       components: formData.components || [],
       mainEquipment: formData.mainEquipment || '',
       operatingCondition: formData.operatingCondition || '',
@@ -100,7 +124,7 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
       mitigatedRiskRating: formData.mitigatedRiskRating || '',
       taskOriginReferences: formData.taskOriginReferences || '',
       remarks: formData.remarks,
-      createdAt: isEdit ? initialData?.createdAt || new Date().toISOString() : new Date().toISOString(),
+      createdAt: isEdit ? formData.createdAt || new Date().toISOString() : new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
@@ -145,8 +169,8 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
                     <SelectValue placeholder="Select equipment" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockEquipment.map((eq) => (
-                      <SelectItem key={eq} value={eq}>{eq}</SelectItem>
+                    {equipmentList.map((eq) => (
+                      <SelectItem key={eq.id} value={eq.tag}>{eq.name} ({eq.tag})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -166,6 +190,7 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
                 <Input
                   id="availabilityTarget"
                   type="number"
+                  step="0.1"
                   value={formData.availabilityTarget || ''}
                   onChange={(e) => handleInputChange('availabilityTarget', parseFloat(e.target.value))}
                 />
@@ -232,8 +257,8 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
                     <SelectValue placeholder="Select mechanism" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockFailureMechanisms.map((mechanism) => (
-                      <SelectItem key={mechanism} value={mechanism}>{mechanism}</SelectItem>
+                    {failureMechanisms.map((mechanism) => (
+                      <SelectItem key={mechanism.id} value={mechanism.name}>{mechanism.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -246,8 +271,8 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
                     <SelectValue placeholder="Select cause" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockFailureCauses.map((cause) => (
-                      <SelectItem key={cause} value={cause}>{cause}</SelectItem>
+                    {failureCauses.map((cause) => (
+                      <SelectItem key={cause.id} value={cause.name}>{cause.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -286,8 +311,8 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
                   <SelectValue placeholder="Add component" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockComponents.filter(comp => !formData.components?.includes(comp)).map((component) => (
-                    <SelectItem key={component} value={component}>{component}</SelectItem>
+                  {componentsList.filter(comp => !formData.components?.includes(comp.name)).map((component) => (
+                    <SelectItem key={component.id} value={component.name}>{component.name} ({component.category})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -417,18 +442,22 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
             <div>
               <Label>Failure Consequences</Label>
               <div className="flex gap-2 mt-2">
-                <Input
-                  placeholder="Add failure consequence"
-                  value={newConsequence}
-                  onChange={(e) => setNewConsequence(e.target.value)}
-                />
-                <Button type="button" onClick={() => handleArrayAdd('failureConsequences', newConsequence)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <Select onValueChange={(value) => {
+                  handleArrayAdd('failureConsequences', value);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Add failure consequence" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableConsequences.filter(cons => !formData.failureConsequences?.includes(cons)).map((consequence) => (
+                      <SelectItem key={consequence} value={consequence}>{consequence}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.failureConsequences?.map((consequence, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                  <Badge key={index} variant="destructive" className="flex items-center gap-1">
                     {consequence}
                     <X 
                       className="h-3 w-3 cursor-pointer" 
@@ -451,18 +480,22 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
             <div>
               <Label>Mitigation Actions</Label>
               <div className="flex gap-2 mt-2">
-                <Input
-                  placeholder="Add mitigation action"
-                  value={newMitigationAction}
-                  onChange={(e) => setNewMitigationAction(e.target.value)}
-                />
-                <Button type="button" onClick={() => handleArrayAdd('mitigationActions', newMitigationAction)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <Select onValueChange={(value) => {
+                  handleArrayAdd('mitigationActions', value);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Add mitigation action" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableActions.filter(action => !formData.mitigationActions?.includes(action)).map((action) => (
+                      <SelectItem key={action} value={action}>{action}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.mitigationActions?.map((action, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                  <Badge key={index} variant="outline" className="flex items-center gap-1">
                     {action}
                     <X 
                       className="h-3 w-3 cursor-pointer" 
@@ -494,8 +527,8 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
                     <SelectValue placeholder="Select task type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {TASK_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    {taskTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.code}>{type.name} ({type.code})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -517,8 +550,8 @@ const FMEAForm: React.FC<FMEAFormProps> = ({ initialData, isEdit = false }) => {
                     <SelectValue placeholder="Select work center" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockWorkCenters.map((center) => (
-                      <SelectItem key={center} value={center}>{center}</SelectItem>
+                    {workCenters.map((center) => (
+                      <SelectItem key={center.id} value={center.code}>{center.name} ({center.code})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

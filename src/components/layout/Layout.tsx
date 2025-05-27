@@ -46,7 +46,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Sidebar */}
         <div 
           className={cn(
-            "transition-all duration-300 ease-in-out min-h-screen flex-shrink-0",
+            "transition-all duration-300 ease-in-out flex-shrink-0",
             isMobile 
               ? "fixed inset-y-0 left-0 z-30 w-64 transform" 
               : sidebarOpen ? "w-64" : "w-0",
@@ -54,7 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           )}
         >
           <div className={cn(
-            "h-full bg-sidebar text-sidebar-foreground w-64",
+            "h-screen bg-sidebar text-sidebar-foreground w-64 fixed top-0 left-0",
             isMobile ? "pt-16" : "pt-20",
             !sidebarOpen && !isMobile && "opacity-0 pointer-events-none"
           )}>
@@ -64,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         
         <main className={cn(
           "flex-1 min-w-0 p-6 pt-20 transition-all duration-300 ease-in-out",
-          !isMobile && !sidebarOpen && "ml-0"
+          sidebarOpen && !isMobile ? "ml-64" : "ml-0"
         )}>
           <div className="mb-4">
             <Button 
