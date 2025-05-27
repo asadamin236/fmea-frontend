@@ -20,7 +20,7 @@ const Sidebar = () => {
   return (
     <aside className="h-full">
       <ScrollArea className="h-full">
-        <nav className="space-y-6 p-4">
+        <nav className="space-y-6 p-4" >
           <div>
             <h3 className="text-xs uppercase text-sidebar-foreground/70 font-semibold mb-2 px-4">Main</h3>
             <ul className="space-y-1">
