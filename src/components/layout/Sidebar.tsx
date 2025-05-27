@@ -1,5 +1,6 @@
+
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart2, Settings, Database, FileText, User, Users, Settings as SettingsIcon } from 'lucide-react';
+import { BarChart2, Settings, Database, FileText, User, Users, Settings as SettingsIcon, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Sidebar = () => {
@@ -76,9 +77,27 @@ const Sidebar = () => {
           <h3 className="text-xs uppercase text-sidebar-foreground/70 font-semibold mb-2 px-4">Risk Analysis</h3>
           <ul className="space-y-1">
             <li>
+              <Link to="/fmea-analysis" className={navItemClasses('/fmea-analysis')}>
+                <AlertTriangle className="mr-3 h-5 w-5" />
+                <span>FMEA Analysis</span>
+              </Link>
+            </li>
+            <li>
               <Link to="/failure-modes" className={navItemClasses('/failure-modes')}>
                 <FileText className="mr-3 h-5 w-5" />
                 <span>Failure Modes</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/failure-mechanisms" className={navItemClasses('/failure-mechanisms')}>
+                <Settings className="mr-3 h-5 w-5" />
+                <span>Failure Mechanisms</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/failure-causes" className={navItemClasses('/failure-causes')}>
+                <FileText className="mr-3 h-5 w-5" />
+                <span>Failure Causes</span>
               </Link>
             </li>
             <li>

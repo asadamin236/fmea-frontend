@@ -43,6 +43,13 @@ import ManufacturerForm from "./pages/ManufacturerForm";
 import ManufacturerDetail from "./pages/ManufacturerDetail";
 import FailureMechanisms from "./pages/FailureMechanisms";
 import FailureCauses from "./pages/FailureCauses";
+import FMEAAnalysis from "./pages/FMEAAnalysis";
+import FMEAAnalysisForm from "./pages/FMEAAnalysisForm";
+import FMEAAnalysisDetail from "./pages/FMEAAnalysisDetail";
+import FailureMechanismForm from "./pages/FailureMechanismForm";
+import FailureMechanismDetail from "./pages/FailureMechanismDetail";
+import FailureCauseForm from "./pages/FailureCauseForm";
+import FailureCauseDetail from "./pages/FailureCauseDetail";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -91,9 +98,21 @@ const App = () => {
             <Route path="/manufacturers/new" element={<ManufacturerForm />} />
             <Route path="/manufacturers/:id" element={<ManufacturerDetail />} />
             <Route path="/manufacturers/:id/edit" element={<ManufacturerForm />} />
-            {/* Failure Management Routes */}
+            {/* FMEA Analysis Routes */}
+            <Route path="/fmea-analysis" element={<FMEAAnalysis />} />
+            <Route path="/fmea-analysis/new" element={<FMEAAnalysisForm />} />
+            <Route path="/fmea-analysis/:id" element={<FMEAAnalysisDetail />} />
+            <Route path="/fmea-analysis/:id/edit" element={<FMEAAnalysisForm />} />
+            {/* Failure Mechanism Routes */}
             <Route path="/failure-mechanisms" element={<FailureMechanisms />} />
+            <Route path="/failure-mechanisms/new" element={<FailureMechanismForm />} />
+            <Route path="/failure-mechanisms/:id" element={<FailureMechanismDetail />} />
+            <Route path="/failure-mechanisms/:id/edit" element={<FailureMechanismForm />} />
+            {/* Failure Cause Routes */}
             <Route path="/failure-causes" element={<FailureCauses />} />
+            <Route path="/failure-causes/new" element={<FailureCauseForm />} />
+            <Route path="/failure-causes/:id" element={<FailureCauseDetail />} />
+            <Route path="/failure-causes/:id/edit" element={<FailureCauseForm />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
