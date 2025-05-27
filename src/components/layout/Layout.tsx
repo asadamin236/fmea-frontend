@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -45,21 +46,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Sidebar */}
         <div 
           className={cn(
-            "transition-all duration-300 ease-in-out min-h-screen",
+            "transition-all duration-300 ease-in-out min-h-screen flex-shrink-0",
             isMobile 
               ? "fixed inset-y-0 left-0 z-30 w-64 transform" 
-              : "w-64",
-            !sidebarOpen && (isMobile ? "-translate-x-full" : "w-0")
+              : sidebarOpen ? "w-64" : "w-0",
+            !sidebarOpen && isMobile && "-translate-x-full"
           )}
         >
           <div className={cn(
-            "h-full bg-sidebar text-sidebar-foreground",
-            isMobile ? "pt-16" : "pt-20"
+            "h-full bg-sidebar text-sidebar-foreground w-64",
+            isMobile ? "pt-16" : "pt-20",
+            !sidebarOpen && !isMobile && "opacity-0 pointer-events-none"
           )}>
             <Sidebar />
           </div>
         </div>
-        <main className={`w-full flex-1 p-6 pt-20 transition-all duration-300 ease-in-out`}>
+        
+        <main className={cn(
+          "flex-1 min-w-0 p-6 pt-20 transition-all duration-300 ease-in-out",
+          !isMobile && !sidebarOpen && "ml-0"
+        )}>
           <div className="mb-4">
             <Button 
               variant="outline" 
