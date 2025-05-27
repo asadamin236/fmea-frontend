@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { BarChart2, Settings, Database, FileText, User, Users, Settings as SettingsIcon, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,7 +7,7 @@ const Sidebar = () => {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path);
+    return location.pathname === path;
   };
 
   const navItemClasses = (path: string) => cn(
