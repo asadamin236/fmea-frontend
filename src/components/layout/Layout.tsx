@@ -64,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         
         <main className={cn(
           "flex-1 min-w-0 p-6 pt-20 transition-all duration-300 ease-in-out",
-          sidebarOpen && !isMobile ? "ml-64" : "ml-0"
+          sidebarOpen && !isMobile ? "ml-2" : "ml-0"
         )}>
           <div className="mb-4">
             <Button 
