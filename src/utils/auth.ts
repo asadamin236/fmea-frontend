@@ -1,10 +1,10 @@
-// Authentication system using localStorage
+// src/utils/auth.ts
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'editor' | 'user';
+  role: "admin" | "editor" | "user";
   teamId?: string;
   avatar?: string;
 }
@@ -21,113 +21,107 @@ export interface AuthState {
   user: User | null;
 }
 
-// Check if user is authenticated
+// ✅ Check if user is authenticated
 export const checkAuth = (): AuthState => {
-  const userStr = localStorage.getItem('fmea_user');
-  
+  const userStr = localStorage.getItem("fmea_user");
   if (userStr) {
     try {
-      const user = JSON.parse(userStr);
+      const user: User = JSON.parse(userStr);
       return { isAuthenticated: true, user };
     } catch (e) {
       return { isAuthenticated: false, user: null };
     }
   }
-  
   return { isAuthenticated: false, user: null };
 };
 
-// Login user
-export const loginUser = (email: string, password: string): { success: boolean; user?: User; error?: string } => {
-  // In a real app, you would validate against a backend
-  
-  // First check if the user is one of our sample users
-  const sampleUsers: User[] = [
-    {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      role: 'admin'
-    },
-    {
-      id: '2',
-      name: 'Regular User',
-      email: 'user@example.com',
-      role: 'user'
-    }
-  ];
-  
-  // Check sample users first (for demo purposes)
-  const sampleUser = sampleUsers.find(u => u.email === email);
-  if (sampleUser && password === 'password') {
-    localStorage.setItem('fmea_user', JSON.stringify(sampleUser));
-    return { success: true, user: sampleUser };
-  }
-  
-  // Check users created by admin
-  const storedUsers = localStorage.getItem('fmea_users');
-  const userPasswords = localStorage.getItem('fmea_user_passwords');
-  
-  if (storedUsers && userPasswords) {
-    try {
-      const users: User[] = JSON.parse(storedUsers);
-      const passwords = JSON.parse(userPasswords);
-      
-      const user = users.find(u => u.email === email);
-      
-      if (user && passwords[email] === password) {
-        localStorage.setItem('fmea_user', JSON.stringify(user));
-        return { success: true, user };
-      }
-    } catch (e) {
-      // Invalid JSON
-    }
-  }
-  
-  return { success: false, error: 'Invalid email or password' };
+// ✅ Get token from local storage
+export const getToken = (): string | null => {
+  return localStorage.getItem("fmea_token");
 };
 
-// Logout user
+// ✅ Login using backend
+export const loginUser = async (
+  email: string,
+  password: string
+): Promise<{ success: boolean; user?: User; error?: string }> => {
+  try {
+    const response = await fetch("https://fmea-backend.vercel.app/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, error: data?.error || "Login failed" };
+    }
+
+    const { token, user } = data;
+
+    const normalizedUser: User = {
+      id: user.id || user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      teamId: user.teamId || null,
+      avatar: user.avatar || "",
+    };
+
+    // ✅ Save token and user to localStorage
+    localStorage.setItem("fmea_token", token);
+    localStorage.setItem("fmea_user", JSON.stringify(normalizedUser));
+
+    return { success: true, user: normalizedUser };
+  } catch (error) {
+    return { success: false, error: "Network error. Try again." };
+  }
+};
+
+
+// ✅ Logout
 export const logoutUser = (): void => {
-  localStorage.removeItem('fmea_user');
+  localStorage.removeItem("fmea_user");
+  localStorage.removeItem("fmea_token");
 };
 
-// Check if user is admin
+// ✅ Check if current user is admin
 export const isAdmin = (): boolean => {
   const { user } = checkAuth();
-  return user?.role === 'admin';
+  return user?.role === "admin";
 };
 
-// Get teams from local storage
+// ✅ Get teams from local storage
 export const getTeams = (): Team[] => {
-  const storedTeams = localStorage.getItem('fmea_teams');
+  const storedTeams = localStorage.getItem("fmea_teams");
   return storedTeams ? JSON.parse(storedTeams) : [];
 };
 
-// Get team by ID
+// ✅ Get team by ID
 export const getTeamById = (id: string): Team | undefined => {
   const teams = getTeams();
-  return teams.find(team => team.id === id);
+  return teams.find((team) => team.id === id);
 };
 
-// Get team members count
+// ✅ Count team members
 export const getTeamMembersCount = (teamId: string): number => {
-  const storedUsers = localStorage.getItem('fmea_users');
+  const storedUsers = localStorage.getItem("fmea_users");
   if (!storedUsers) return 0;
-  
+
   const users: User[] = JSON.parse(storedUsers);
-  return users.filter(user => user.teamId === teamId).length;
+  return users.filter((user) => user.teamId === teamId).length;
 };
 
-// Update teams member counts
+// ✅ Update team member counts
 export const updateTeamMemberCounts = (): void => {
   const teams = getTeams();
   if (teams.length === 0) return;
-  
-  const updatedTeams = teams.map(team => ({
+
+  const updatedTeams = teams.map((team) => ({
     ...team,
-    members: getTeamMembersCount(team.id)
+    members: getTeamMembersCount(team.id),
   }));
-  
-  localStorage.setItem('fmea_teams', JSON.stringify(updatedTeams));
+
+  localStorage.setItem("fmea_teams", JSON.stringify(updatedTeams));
 };

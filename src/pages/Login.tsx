@@ -1,34 +1,42 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/pages/Login.tsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { loginUser, checkAuth } from '@/utils/auth';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { loginUser, checkAuth } from "@/utils/auth";
 import { toast } from "@/components/ui/sonner";
 
 const Login = () => {
   const navigate = useNavigate();
-  
-  // Login form state
-  const [loginEmail, setLoginEmail] = useState<string>("");
-  const [loginPassword, setLoginPassword] = useState<string>("");
 
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // 🚦 Redirect if already logged in
   useEffect(() => {
-    // Redirect to dashboard if already logged in
     const { isAuthenticated } = checkAuth();
-    if (isAuthenticated) {
-      navigate('/');
-    }
+    if (isAuthenticated) navigate("/");
   }, [navigate]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = loginUser(loginEmail, loginPassword);
-    
+    setLoading(true);
+
+    const result = await loginUser(loginEmail, loginPassword);
+    setLoading(false);
+
     if (result.success) {
       toast.success("Login successful!");
-      navigate('/');
+      navigate("/");
     } else {
       toast.error(result.error || "Login failed");
     }
@@ -38,45 +46,65 @@ const Login = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">DWTask AMS - FMEA</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            DWTask AMS - FMEA
+          </CardTitle>
           <CardDescription>Login to access your dashboard</CardDescription>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4 mt-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <Input 
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Email
+              </label>
+              <Input
                 id="email"
-                type="email" 
-                value={loginEmail} 
+                type="email"
+                value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="Email"
+                placeholder="Enter your email"
                 required
               />
             </div>
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-              <Input 
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Password
+              </label>
+              <Input
                 id="password"
-                type="password" 
-                value={loginPassword} 
+                type="password"
+                value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="Password"
+                placeholder="Enter your password"
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-            <div className="text-center text-sm text-gray-500 mt-2">
-              <p>Demo credentials:</p>
-              <p>Admin: admin@example.com / password</p>
-              <p>User: user@example.com / password</p>
+
+            <div className="text-right text-sm">
+              <Link
+                to="/forgot-password"
+                className="text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </Button>
           </form>
         </CardContent>
-        <CardFooter className="text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} DWTask AMS - FMEA
+
+        <CardFooter className="flex flex-col items-center text-sm text-gray-500 gap-1">
+          <p className="mt-2">© {new Date().getFullYear()} DWTask AMS - FMEA</p>
         </CardFooter>
       </Card>
     </div>

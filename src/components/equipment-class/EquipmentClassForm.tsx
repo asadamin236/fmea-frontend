@@ -1,10 +1,9 @@
-
-import React, { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,170 +11,225 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save } from 'lucide-react';
-import { equipmentClasses } from '@/data/equipmentData';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { ArrowLeft, Save } from "lucide-react";
 
-const formSchema = z.object({
-  className: z.string().min(1, 'Class name is required'),
+const API_BASE = "http://localhost:5000/api/equipment-class";
+
+const schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  engineeringDiscipline: z.enum([
+    "Mechanical",
+    "Electrical",
+    "Instrumentation",
+    "Civil",
+    "Process",
+  ]),
   lastReviewed: z.string().optional(),
   reviewerList: z.string().optional(),
-  classDescription: z.string().optional(),
-  classEngineeringDiscipline: z.string().optional(),
 });
 
 const EquipmentClassForm: React.FC = () => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const isEdit = Boolean(id);
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const isEdit = !!id;
+  const [loading, setLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      className: '',
-      lastReviewed: '',
-      reviewerList: '',
-      classDescription: '',
-      classEngineeringDiscipline: '',
+      name: "",
+      description: "",
+      engineeringDiscipline: "Mechanical",
+      lastReviewed: "",
+      reviewerList: "",
     },
   });
 
-  // Load data if in edit mode
   useEffect(() => {
     if (isEdit) {
-      const equipmentClass = equipmentClasses.find(e => e.id === id);
-      if (equipmentClass) {
-        form.reset({
-          className: equipmentClass.name,
-          lastReviewed: '',
-          reviewerList: '',
-          classDescription: equipmentClass.description || '',
-          classEngineeringDiscipline: '',
-        });
-      }
+      setLoading(true);
+      fetch(`${API_BASE}/${id}`)
+        .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+        .then((data) =>
+          form.reset({
+            name: data.name,
+            description: data.description || "",
+            engineeringDiscipline: data.engineeringDiscipline,
+            lastReviewed: data.lastReviewed?.slice(0, 10) || "",
+            reviewerList: (data.reviewerList || []).join(", "),
+          })
+        )
+        .catch((err) => {
+          console.error("Load failed:", err);
+          toast({
+            title: "Error",
+            description: "Failed to load",
+            variant: "destructive",
+          });
+        })
+        .finally(() => setLoading(false));
     }
-  }, [isEdit, id, form]);
+  }, [id]);
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log('Form values:', values);
-    
-    toast({
-      title: isEdit ? "Equipment Class Updated" : "Equipment Class Created",
-      description: `${values.className} has been ${isEdit ? 'updated' : 'created'} successfully`,
-    });
-    
-    navigate('/equipment-classes');
+  const onSubmit = async (values: z.infer<typeof schema>) => {
+    const payload = {
+      name: values.name,
+      description: values.description,
+      engineeringDiscipline: values.engineeringDiscipline,
+      lastReviewed: values.lastReviewed || undefined,
+      reviewerList: values.reviewerList
+        ? values.reviewerList.split(",").map((s) => s.trim())
+        : [],
+    };
+
+    try {
+      const url = isEdit ? `${API_BASE}/${id}` : API_BASE;
+      const res = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error("Save failed:", res.status, errBody);
+        toast({
+          title: "Error",
+          description: (errBody as any).error || "Save failed",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({ title: "Success", description: isEdit ? "Updated" : "Created" });
+      navigate("/equipment-classes");
+    } catch (err) {
+      console.error("Network error:", err);
+      toast({
+        title: "Error",
+        description: "Network error",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) return <p>Loading…</p>;
 
   return (
     <div>
       <div className="flex items-center mb-6">
-        <Button variant="outline" onClick={() => navigate('/equipment-classes')} className="mr-4">
+        <Button
+          variant="outline"
+          onClick={() => navigate("/equipment-classes")}
+          className="mr-4"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-2xl font-bold">{isEdit ? 'Edit' : 'Add'} Equipment Class</h1>
+        <h1 className="text-2xl font-bold">
+          {isEdit ? "Edit" : "Add"} Equipment Class
+        </h1>
       </div>
-      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <FormField
-              control={form.control}
-              name="className"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Class Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter equipment class name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="lastReviewed"
-              render={({ field }) => (
-                <FormItem className="mt-4">
-                  <FormLabel>Last Reviewed</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="date"
-                      placeholder="Select last reviewed date" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="reviewerList"
-              render={({ field }) => (
-                <FormItem className="mt-4">
-                  <FormLabel>Reviewer List</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter reviewer names (comma separated)" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="classDescription"
-              render={({ field }) => (
-                <FormItem className="mt-4">
-                  <FormLabel>Class Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Enter class description" 
-                      className="resize-none" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="classEngineeringDiscipline"
-              render={({ field }) => (
-                <FormItem className="mt-4">
-                  <FormLabel>Class Engineering Discipline</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Enter engineering discipline" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
+          {/* name */}
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Name" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* description */}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea {...field} placeholder="Description" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* discipline */}
+          <FormField
+            control={form.control}
+            name="engineeringDiscipline"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Discipline</FormLabel>
+                <FormControl>
+                  <select {...field} className="w-full border rounded p-2">
+                    {[
+                      "Mechanical",
+                      "Electrical",
+                      "Instrumentation",
+                      "Civil",
+                      "Process",
+                    ].map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* lastReviewed */}
+          <FormField
+            control={form.control}
+            name="lastReviewed"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Last Reviewed</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* reviewers */}
+          <FormField
+            control={form.control}
+            name="reviewerList"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Reviewer List</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Comma‑separated" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <div className="flex justify-end gap-4">
-            <Button variant="outline" type="button" onClick={() => navigate('/equipment-classes')}>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/equipment-classes")}
+            >
               Cancel
             </Button>
             <Button type="submit">
               <Save className="mr-2 h-4 w-4" />
-              {isEdit ? 'Update' : 'Create'} Equipment Class
+              {isEdit ? "Update" : "Create"}
             </Button>
           </div>
         </form>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -50,6 +49,8 @@ import FailureMechanismForm from "./pages/FailureMechanismForm";
 import FailureMechanismDetail from "./pages/FailureMechanismDetail";
 import FailureCauseForm from "./pages/FailureCauseForm";
 import FailureCauseDetail from "./pages/FailureCauseDetail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -74,7 +75,10 @@ const App = () => {
             <Route path="/failure-modes" element={<FailureModes />} />
             <Route path="/failure-modes/new" element={<FailureModeForm />} />
             <Route path="/failure-modes/:id" element={<FailureModeDetail />} />
-            <Route path="/failure-modes/:id/edit" element={<FailureModeForm />} />
+            <Route
+              path="/failure-modes/:id/edit"
+              element={<FailureModeForm />}
+            />
             <Route path="/spare-parts" element={<SpareParts />} />
             <Route path="/spare-parts/new" element={<SparePartForm />} />
             <Route path="/spare-parts/:id" element={<SparePartDetail />} />
@@ -85,35 +89,76 @@ const App = () => {
             <Route path="/equipment/:id/edit" element={<EquipmentForm />} />
             {/* Equipment Class Routes */}
             <Route path="/equipment-classes" element={<EquipmentClasses />} />
-            <Route path="/equipment-classes/new" element={<EquipmentClassForm />} />
-            <Route path="/equipment-classes/:id" element={<EquipmentClassDetail />} />
-            <Route path="/equipment-classes/:id/edit" element={<EquipmentClassForm />} />
+            <Route
+              path="/equipment-classes/new"
+              element={<EquipmentClassForm />}
+            />
+            <Route
+              path="/equipment-classes/:id"
+              element={<EquipmentClassDetail />}
+            />
+            <Route
+              path="/equipment-classes/:id/edit"
+              element={<EquipmentClassForm />}
+            />
             {/* Equipment Type Routes */}
             <Route path="/equipment-types" element={<EquipmentTypes />} />
-            <Route path="/equipment-types/new" element={<EquipmentTypeForm />} />
-            <Route path="/equipment-types/:id" element={<EquipmentTypeDetail />} />
-            <Route path="/equipment-types/:id/edit" element={<EquipmentTypeForm />} />
+            <Route
+              path="/equipment-types/new"
+              element={<EquipmentTypeForm />}
+            />
+            <Route
+              path="/equipment-types/:id"
+              element={<EquipmentTypeDetail />}
+            />
+            <Route
+              path="/equipment-types/:id/edit"
+              element={<EquipmentTypeForm />}
+            />
             {/* Manufacturer Routes */}
             <Route path="/manufacturers" element={<Manufacturers />} />
             <Route path="/manufacturers/new" element={<ManufacturerForm />} />
             <Route path="/manufacturers/:id" element={<ManufacturerDetail />} />
-            <Route path="/manufacturers/:id/edit" element={<ManufacturerForm />} />
+            <Route
+              path="/manufacturers/:id/edit"
+              element={<ManufacturerForm />}
+            />
             {/* FMEA Analysis Routes */}
             <Route path="/fmea-analysis" element={<FMEAAnalysis />} />
             <Route path="/fmea-analysis/new" element={<FMEAAnalysisForm />} />
             <Route path="/fmea-analysis/:id" element={<FMEAAnalysisDetail />} />
-            <Route path="/fmea-analysis/:id/edit" element={<FMEAAnalysisForm />} />
+            <Route
+              path="/fmea-analysis/:id/edit"
+              element={<FMEAAnalysisForm />}
+            />
             {/* Failure Mechanism Routes */}
             <Route path="/failure-mechanisms" element={<FailureMechanisms />} />
-            <Route path="/failure-mechanisms/new" element={<FailureMechanismForm />} />
-            <Route path="/failure-mechanisms/:id" element={<FailureMechanismDetail />} />
-            <Route path="/failure-mechanisms/:id/edit" element={<FailureMechanismForm />} />
+            <Route
+              path="/failure-mechanisms/new"
+              element={<FailureMechanismForm />}
+            />
+            <Route
+              path="/failure-mechanisms/:id"
+              element={<FailureMechanismDetail />}
+            />
+            <Route
+              path="/failure-mechanisms/:id/edit"
+              element={<FailureMechanismForm />}
+            />
             {/* Failure Cause Routes */}
             <Route path="/failure-causes" element={<FailureCauses />} />
             <Route path="/failure-causes/new" element={<FailureCauseForm />} />
-            <Route path="/failure-causes/:id" element={<FailureCauseDetail />} />
-            <Route path="/failure-causes/:id/edit" element={<FailureCauseForm />} />
+            <Route
+              path="/failure-causes/:id"
+              element={<FailureCauseDetail />}
+            />
+            <Route
+              path="/failure-causes/:id/edit"
+              element={<FailureCauseForm />}
+            />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/teams" element={<Teams />} />

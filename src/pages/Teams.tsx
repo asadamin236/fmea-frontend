@@ -1,14 +1,28 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Layout from '../components/layout/Layout';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Layout from "../components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
-import { PlusCircle, Edit, Trash2, UserPlus } from 'lucide-react';
-import { checkAuth, isAdmin, Team, getTeams, updateTeamMemberCounts } from '@/utils/auth';
+import { PlusCircle, Edit, Trash2, UserPlus } from "lucide-react";
+import { checkAuth, isAdmin, Team } from "@/utils/auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,138 +38,181 @@ import { Textarea } from "@/components/ui/textarea";
 const Teams = () => {
   const navigate = useNavigate();
   const [teams, setTeams] = useState<Team[]>([]);
-  
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
-  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<string | null>(null);
-  
-  const [newTeam, setNewTeam] = useState({
-    name: '',
-    description: ''
-  });
-  
+  const [newTeam, setNewTeam] = useState({ name: "", description: "" });
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  
+
   useEffect(() => {
-    // Check if user is authenticated
     const { isAuthenticated } = checkAuth();
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
-    
-    // Load teams data
     loadTeams();
   }, [navigate]);
-  
-  const loadTeams = () => {
-    const teams = getTeams();
-    setTeams(teams);
+
+  const loadTeams = async () => {
+    try {
+      const token = localStorage.getItem("fmea_token");
+
+      if (!token) {
+        toast.error("Token not found. Please login again.");
+        return;
+      }
+
+      console.log("Token being used for load:", token); // Debug
+
+      const res = await fetch("https://fmea-backend.vercel.app/api/teams", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data?.error || "Failed to fetch teams");
+        return;
+      }
+
+      const formattedTeams = data.teams.map((team: any) => ({
+        id: team._id,
+        name: team.name,
+        description: team.description,
+        members: team.memberCount || 0, // <- should work if backend sends it
+      }));
+
+      setTeams(formattedTeams);
+    } catch (err) {
+      toast.error("Failed to load teams");
+    }
   };
-  
-  const handleCreateTeam = () => {
-    // Validate form
+
+  const handleCreateTeam = async () => {
     if (!newTeam.name || !newTeam.description) {
       toast.error("Team name and description are required");
       return;
     }
-    
-    // Create new team
-    const team: Team = {
-      id: Date.now().toString(),
-      name: newTeam.name,
-      description: newTeam.description,
-      members: 0
-    };
-    
-    // Add team to "database"
-    const updatedTeams = [...teams, team];
-    setTeams(updatedTeams);
-    localStorage.setItem('fmea_teams', JSON.stringify(updatedTeams));
-    
-    // Reset form and close dialog
-    setNewTeam({
-      name: '',
-      description: ''
-    });
-    setCreateDialogOpen(false);
-    
-    toast.success("Team created successfully");
+    try {
+      const token = localStorage.getItem("fmea_token");
+
+      if (!token) {
+        toast.error("No token found. Please login again.");
+        return;
+      }
+
+      console.log("Token being used for create:", token); // Debug line
+
+      const res = await fetch("https://fmea-backend.vercel.app/api/teams", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTeam),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Failed to create team");
+        return;
+      }
+
+      toast.success("Team created successfully");
+      setNewTeam({ name: "", description: "" });
+      setCreateDialogOpen(false);
+      loadTeams(); // reload from backend
+    } catch (err) {
+      toast.error("An error occurred while creating the team");
+    }
   };
-  
-  const handleEditTeam = () => {
+
+  const handleEditTeam = async () => {
     if (!editingTeam) return;
-    
-    // Validate form
     if (!editingTeam.name || !editingTeam.description) {
       toast.error("Team name and description are required");
       return;
     }
-    
-    // Update team
-    const updatedTeams = teams.map(team => 
-      team.id === editingTeam.id ? editingTeam : team
-    );
-    
-    setTeams(updatedTeams);
-    localStorage.setItem('fmea_teams', JSON.stringify(updatedTeams));
-    
-    setEditDialogOpen(false);
-    toast.success(`Team ${editingTeam.name} updated successfully`);
+
+    try {
+      const token = localStorage.getItem("fmea_token");
+      const res = await fetch(
+        `https://fmea-backend.vercel.app/api/teams/${editingTeam.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: editingTeam.name,
+            description: editingTeam.description,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to update team");
+        return;
+      }
+      toast.success(`Team ${editingTeam.name} updated successfully`);
+      setEditDialogOpen(false);
+      loadTeams();
+    } catch (err) {
+      toast.error("Failed to update team");
+    }
   };
-  
+
+  const confirmDelete = async () => {
+    if (!teamToDelete) return;
+    try {
+      const token = localStorage.getItem("fmea_token");
+      const res = await fetch(
+        `https://fmea-backend.vercel.app/api/teams/${teamToDelete}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data?.error || "Failed to delete team");
+        return;
+      }
+      toast.success("Team deleted successfully");
+      setDeleteDialogOpen(false);
+      setTeamToDelete(null);
+      loadTeams();
+    } catch (err) {
+      toast.error("Failed to delete team");
+    }
+  };
+
   const openEditDialog = (team: Team) => {
-    setEditingTeam({...team});
+    setEditingTeam({ ...team });
     setEditDialogOpen(true);
   };
-  
+
   const handleDeleteClick = (teamId: string) => {
     setTeamToDelete(teamId);
     setDeleteDialogOpen(true);
   };
-  
-  const confirmDelete = () => {
-    if (!teamToDelete) return;
-    
-    const teamName = teams.find(t => t.id === teamToDelete)?.name || 'Team';
-    
-    // Update users that belonged to this team
-    const storedUsers = localStorage.getItem('fmea_users');
-    if (storedUsers) {
-      const users = JSON.parse(storedUsers);
-      const updatedUsers = users.map(user => {
-        if (user.teamId === teamToDelete) {
-          return { ...user, teamId: undefined };
-        }
-        return user;
-      });
-      localStorage.setItem('fmea_users', JSON.stringify(updatedUsers));
-    }
-    
-    // Remove team
-    const updatedTeams = teams.filter(team => team.id !== teamToDelete);
-    setTeams(updatedTeams);
-    localStorage.setItem('fmea_teams', JSON.stringify(updatedTeams));
-    
-    setDeleteDialogOpen(false);
-    setTeamToDelete(null);
-    toast.success(`Team ${teamName} deleted successfully`);
-  };
-  
+
   const openAddMemberDialog = (teamId: string) => {
     setSelectedTeam(teamId);
     setAddMemberDialogOpen(true);
   };
-  
+
   const handleAddMember = () => {
-    // In real implementation, this would open a dialog to select users to add to the team
     setAddMemberDialogOpen(false);
     navigate(`/users?teamId=${selectedTeam}`);
   };
+
+  // Keep your existing JSX from the previous code — this JS handles all backend logic now
 
   return (
     <Layout>
@@ -167,7 +224,7 @@ const Teams = () => {
             Create Team
           </Button>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>All Teams</CardTitle>
@@ -185,7 +242,9 @@ const Teams = () => {
               <TableBody>
                 {teams.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center">No teams found</TableCell>
+                    <TableCell colSpan={4} className="text-center">
+                      No teams found
+                    </TableCell>
                   </TableRow>
                 ) : (
                   teams.map((team) => (
@@ -195,13 +254,25 @@ const Teams = () => {
                       <TableCell>{team.members}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openAddMemberDialog(team.id)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openAddMemberDialog(team.id)}
+                          >
                             <UserPlus className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => openEditDialog(team)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditDialog(team)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDeleteClick(team.id)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteClick(team.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -213,7 +284,7 @@ const Teams = () => {
             </Table>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Team Activity</CardTitle>
@@ -221,19 +292,28 @@ const Teams = () => {
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 border rounded-md">
-                <p><span className="font-semibold">Engineering Team</span> updated 3 components yesterday</p>
+                <p>
+                  <span className="font-semibold">Engineering Team</span>{" "}
+                  updated 3 components yesterday
+                </p>
               </div>
               <div className="p-4 border rounded-md">
-                <p><span className="font-semibold">Maintenance Team</span> added 5 new failure modes last week</p>
+                <p>
+                  <span className="font-semibold">Maintenance Team</span> added
+                  5 new failure modes last week
+                </p>
               </div>
               <div className="p-4 border rounded-md">
-                <p><span className="font-semibold">Quality Control</span> approved 8 spare parts requests</p>
+                <p>
+                  <span className="font-semibold">Quality Control</span>{" "}
+                  approved 8 spare parts requests
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Create Team Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
@@ -245,58 +325,88 @@ const Teams = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Team Name</label>
-              <Input 
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Team Name
+              </label>
+              <Input
                 id="name"
                 value={newTeam.name}
-                onChange={e => setNewTeam({...newTeam, name: e.target.value})}
+                onChange={(e) =>
+                  setNewTeam({ ...newTeam, name: e.target.value })
+                }
               />
             </div>
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-              <Textarea 
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Description
+              </label>
+              <Textarea
                 id="description"
                 value={newTeam.description}
-                onChange={e => setNewTeam({...newTeam, description: e.target.value})}
+                onChange={(e) =>
+                  setNewTeam({ ...newTeam, description: e.target.value })
+                }
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCreateDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleCreateTeam}>
-              Create Team
-            </Button>
+            <Button onClick={handleCreateTeam}>Create Team</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Edit Team Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Team</DialogTitle>
-            <DialogDescription>
-              Update team details.
-            </DialogDescription>
+            <DialogDescription>Update team details.</DialogDescription>
           </DialogHeader>
           {editingTeam && (
             <div className="space-y-4 py-4">
               <div>
-                <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700">Team Name</label>
-                <Input 
+                <label
+                  htmlFor="edit-name"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Team Name
+                </label>
+                <Input
                   id="edit-name"
                   value={editingTeam.name}
-                  onChange={e => setEditingTeam({...editingTeam, name: e.target.value})}
+                  onChange={(e) =>
+                    setEditingTeam({ ...editingTeam, name: e.target.value })
+                  }
                 />
               </div>
               <div>
-                <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700">Description</label>
-                <Textarea 
+                <label
+                  htmlFor="edit-description"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Description
+                </label>
+                <Textarea
                   id="edit-description"
                   value={editingTeam.description}
-                  onChange={e => setEditingTeam({...editingTeam, description: e.target.value})}
+                  onChange={(e) =>
+                    setEditingTeam({
+                      ...editingTeam,
+                      description: e.target.value,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -305,45 +415,51 @@ const Teams = () => {
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleEditTeam}>
-              Save Changes
-            </Button>
+            <Button onClick={handleEditTeam}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Add Member Dialog */}
       <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Team Members</DialogTitle>
             <DialogDescription>
-              You'll be redirected to the Users page to assign users to this team.
+              You'll be redirected to the Users page to assign users to this
+              team.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddMemberDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setAddMemberDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddMember}>
-              Continue
-            </Button>
+            <Button onClick={handleAddMember}>Continue</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this team?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to delete this team?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. All team members will be unassigned from this team.
+              This action cannot be undone. All team members will be unassigned
+              from this team.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

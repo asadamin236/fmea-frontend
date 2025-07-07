@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -7,50 +6,53 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit, Trash2, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { equipmentClasses } from '@/data/equipmentData';
-import { EquipmentClass } from '@/types/equipment-types';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { PlusCircle, Edit, Trash2, Eye } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
+const API_BASE = "http://localhost:5000/api/equipment-class";
 
 const EquipmentClassList: React.FC = () => {
   const { toast } = useToast();
-  const [classList, setClassList] = useState<EquipmentClass[]>(equipmentClasses);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
-  const handleDeleteClick = (id: string) => {
-    setItemToDelete(id);
-    setShowDeleteDialog(true);
-  };
+  useEffect(() => {
+    fetch(API_BASE)
+      .then((r) => r.json())
+      .then((data) => setList(data))
+      .catch(() =>
+        toast({
+          title: "Error",
+          description: "Load failed",
+          variant: "destructive",
+        })
+      )
+      .finally(() => setLoading(false));
+  }, []);
 
-  const confirmDelete = () => {
-    if (itemToDelete) {
-      const itemName = classList.find(c => c.id === itemToDelete)?.name || 'Equipment Class';
-      
-      setClassList(classList.filter(item => item.id !== itemToDelete));
-      
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setList((l) => l.filter((item) => item._id !== id));
+      toast({ title: "Deleted", description: "Removed" });
+    } catch {
       toast({
-        title: "Equipment Class Deleted",
-        description: `${itemName} has been deleted successfully`,
+        title: "Error",
+        description: "Delete failed",
+        variant: "destructive",
       });
-      
-      setShowDeleteDialog(false);
-      setItemToDelete(null);
+    } finally {
+      setDeleting(null);
     }
   };
+
+  if (loading) return <p>Loading…</p>;
 
   return (
     <div>
@@ -59,12 +61,11 @@ const EquipmentClassList: React.FC = () => {
         <Link to="/equipment-classes/new">
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Equipment Class
+            Add
           </Button>
         </Link>
       </div>
-      
-      <div className="bg-white rounded-md shadow">
+      <div className="bg-white rounded shadow overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -75,56 +76,37 @@ const EquipmentClassList: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {classList.map((equipmentClass) => (
-              <TableRow key={equipmentClass.id}>
-                <TableCell className="font-medium">{equipmentClass.name}</TableCell>
-                <TableCell>{equipmentClass.description || 'No description'}</TableCell>
-                <TableCell>{equipmentClass.classEngineeringDiscipline || 'Not specified'}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Link to={`/equipment-classes/${equipmentClass.id}`}>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link to={`/equipment-classes/${equipmentClass.id}/edit`}>
-                      <Button variant="outline" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDeleteClick(equipmentClass.id)}
-                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      <Trash2 className="h-4 w-4" />
+            {list.map((cls) => (
+              <TableRow key={cls._id}>
+                <TableCell>{cls.name}</TableCell>
+                <TableCell>{cls.description || "—"}</TableCell>
+                <TableCell>{cls.engineeringDiscipline || "—"}</TableCell>
+                <TableCell className="text-right space-x-2">
+                  <Link to={`/equipment-classes/${cls._id}`}>
+                    <Button variant="outline" size="sm">
+                      <Eye size={16} />
                     </Button>
-                  </div>
+                  </Link>
+                  <Link to={`/equipment-classes/${cls._id}/edit`}>
+                    <Button variant="outline" size="sm">
+                      <Edit size={16} />
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(cls._id)}
+                    disabled={deleting === cls._id}
+                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this equipment class?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the equipment class
-              and remove it from all equipment mappings.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
