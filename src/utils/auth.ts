@@ -46,11 +46,17 @@ export const loginUser = async (
   password: string
 ): Promise<{ success: boolean; user?: User; error?: string }> => {
   try {
-    const response = await fetch("https://fmea-backend.vercel.app/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    const response = await fetch(
+      "https://fmea-backend.vercel.app/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // 👈 important if you're using cookies
+        body: JSON.stringify({ email, password }),
+      }
+    );
 
     const data = await response.json();
 
@@ -78,7 +84,6 @@ export const loginUser = async (
     return { success: false, error: "Network error. Try again." };
   }
 };
-
 
 // ✅ Logout
 export const logoutUser = (): void => {
