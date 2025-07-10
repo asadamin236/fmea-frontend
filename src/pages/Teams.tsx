@@ -67,7 +67,7 @@ const Teams = () => {
 
       console.log("Token being used for load:", token); // Debug
 
-      const res = await fetch("http://localhost:5000/api/teams", {
+      const res = await fetch("https://fmea-backend.vercel.app/api/teams", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -106,7 +106,7 @@ const Teams = () => {
 
       console.log("Token being used for create:", token); // Debug line
 
-      const res = await fetch("http://localhost:5000/api/teams", {
+      const res = await fetch("https://fmea-backend.vercel.app/api/teams", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -141,7 +141,7 @@ const Teams = () => {
     try {
       const token = localStorage.getItem("fmea_token");
       const res = await fetch(
-        `http://localhost:5000/api/teams/${editingTeam.id}`,
+        `https://fmea-backend.vercel.app/api/teams/${editingTeam.id}`,
         {
           method: "PUT",
           headers: {
