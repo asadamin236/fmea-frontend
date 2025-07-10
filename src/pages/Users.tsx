@@ -93,57 +93,56 @@ const Users = () => {
   }, [navigate, teamIdParam]);
 
   const handleAddUser = async () => {
-  if (!newUser.name || !newUser.email || !newUser.password) {
-    toast.error("All fields are required");
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem("fmea_token");
-    if (!token) {
-      toast.error("Unauthorized: No token found");
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      toast.error("All fields are required");
       return;
     }
 
-    const payload = { ...newUser };
+    try {
+      const token = localStorage.getItem("fmea_token");
+      if (!token) {
+        toast.error("Unauthorized: No token found");
+        return;
+      }
 
-    // Clean up teamId if it's not valid
-    if (!payload.teamId || !/^[a-f\d]{24}$/i.test(payload.teamId)) {
-      delete payload.teamId;
+      const payload = { ...newUser };
+
+      // Clean up teamId if it's not valid
+      if (!payload.teamId || !/^[a-f\d]{24}$/i.test(payload.teamId)) {
+        delete payload.teamId;
+      }
+
+      console.log("Sending payload to backend:", payload);
+
+      const res = await fetch("https://fmea-backend.vercel.app/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create user");
+      }
+
+      setUsers([...users, data]);
+      setNewUser({
+        name: "",
+        email: "",
+        password: "",
+        role: "user",
+        teamId: teamIdParam || undefined,
+      });
+      setOpen(false);
+      toast.success("User created successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Error creating user");
     }
-
-    console.log("Sending payload to backend:", payload);
-
-    const res = await fetch("https://fmea-backend.vercel.app/api/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Failed to create user");
-    }
-
-    setUsers([...users, data]);
-    setNewUser({
-      name: "",
-      email: "",
-      password: "",
-      role: "user",
-      teamId: teamIdParam || undefined,
-    });
-    setOpen(false);
-    toast.success("User created successfully");
-  } catch (error: any) {
-    toast.error(error.message || "Error creating user");
-  }
-};
-
+  };
 
   const handleDeleteClick = (userId: string) => {
     setUserToDelete(userId);

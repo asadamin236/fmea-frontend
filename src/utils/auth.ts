@@ -50,10 +50,7 @@ export const loginUser = async (
       "https://fmea-backend.vercel.app/api/auth/login",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // 👈 important if you're using cookies
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       }
     );
