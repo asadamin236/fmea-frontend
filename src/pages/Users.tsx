@@ -1,3 +1,4 @@
+// ... All your existing imports
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
@@ -23,7 +24,6 @@ import {
 import { toast } from "@/components/ui/sonner";
 import {
   checkAuth,
-  isAdmin,
   User,
   Team,
   getTeams,
@@ -48,11 +48,7 @@ const Users = () => {
   const queryParams = new URLSearchParams(location.search);
   const teamIdParam = queryParams.get("teamId");
 
-  const [users, setUsers] = useState<User[]>(() => {
-    const storedUsers = localStorage.getItem("fmea_users");
-    return storedUsers ? JSON.parse(storedUsers) : [];
-  });
-
+  const [users, setUsers] = useState<User[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [open, setOpen] = useState(false);
   const [newUser, setNewUser] = useState({
@@ -60,14 +56,40 @@ const Users = () => {
     email: "",
     password: "",
     role: "user" as "admin" | "editor" | "user",
-    teamId: teamIdParam || undefined, // ✅ Properly assigning teamId
+    teamId: teamIdParam || undefined,
   });
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
+  const fetchUsers = async () => {
+    const token = localStorage.getItem("fmea_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch("https://fmea-backend.vercel.app/api/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setUsers(data);
+        localStorage.setItem("fmea_users", JSON.stringify(data));
+      } else {
+        toast.error(data.error || "Failed to fetch users");
+      }
+    } catch (err) {
+      toast.error("Error fetching users");
+    }
+  };
+
+  // useEffect(() => {
+  //   fetchUsers();
+  // }, []);
+
   useEffect(() => {
-    // Check if user is authenticated and is admin
     const { isAuthenticated, user } = checkAuth();
     if (!isAuthenticated) {
       navigate("/login");
@@ -77,19 +99,20 @@ const Users = () => {
     if (user?.role !== "admin") {
       navigate("/");
       toast.error("You don't have permission to access this page");
+      return;
     }
 
-    // Load teams data
     const teamsData = getTeams();
     setTeams(teamsData);
 
-    // If teamId is in URL, show notification
     if (teamIdParam) {
-      const team = teamsData.find((t) => t.id === teamIdParam);
+      const team = teamsData.find((t) => t._id === teamIdParam);
       if (team) {
         toast.info(`Viewing users for team: ${team.name}`);
       }
     }
+
+    fetchUsers(); // ✅ Single call after auth
   }, [navigate, teamIdParam]);
 
   const handleAddUser = async () => {
@@ -106,13 +129,9 @@ const Users = () => {
       }
 
       const payload = { ...newUser };
-
-      // Clean up teamId if it's not valid
       if (!payload.teamId || !/^[a-f\d]{24}$/i.test(payload.teamId)) {
         delete payload.teamId;
       }
-
-      console.log("Sending payload to backend:", payload);
 
       const res = await fetch("https://fmea-backend.vercel.app/api/users", {
         method: "POST",
@@ -129,7 +148,9 @@ const Users = () => {
         throw new Error(data.error || "Failed to create user");
       }
 
-      setUsers([...users, data]);
+      await fetchUsers(); // ✅ Refresh users list from backend
+      updateTeamMemberCounts(); // ✅ Refresh local team counts if needed
+
       setNewUser({
         name: "",
         email: "",
@@ -137,6 +158,7 @@ const Users = () => {
         role: "user",
         teamId: teamIdParam || undefined,
       });
+
       setOpen(false);
       toast.success("User created successfully");
     } catch (error: any) {
@@ -149,20 +171,41 @@ const Users = () => {
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
-    if (userToDelete) {
-      const user = users.find((u) => u.id === userToDelete);
-      const userName = user?.name || "User";
-      const updatedUsers = users.filter((user) => user.id !== userToDelete);
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    const token = localStorage.getItem("fmea_token");
+    if (!token) {
+      toast.error("Unauthorized: No token found");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `https://fmea-backend.vercel.app/api/users/${userToDelete}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete user");
+      }
+
+      const updatedUsers = users.filter((user) => user._id !== userToDelete);
       setUsers(updatedUsers);
       localStorage.setItem("fmea_users", JSON.stringify(updatedUsers));
 
-      // Update team members count
       updateTeamMemberCounts();
-
-      toast.success(`User ${userName} deleted successfully`);
+      toast.success("User deleted successfully");
       setShowDeleteDialog(false);
       setUserToDelete(null);
+    } catch (err: any) {
+      toast.error(err.message || "Delete failed");
     }
   };
 
@@ -241,7 +284,7 @@ const Users = () => {
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user._id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
@@ -255,7 +298,7 @@ const Users = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleViewUser(user.id)}
+                            onClick={() => handleViewUser(user._id)}
                           >
                             <Eye className="h-4 w-4" />
                             <span className="sr-only">View</span>
@@ -263,7 +306,7 @@ const Users = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEditUser(user.id)}
+                            onClick={() => handleEditUser(user._id)}
                           >
                             <Edit className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
@@ -271,7 +314,7 @@ const Users = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteClick(user.id)}
+                            onClick={() => handleDeleteClick(user._id)}
                             className="text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
