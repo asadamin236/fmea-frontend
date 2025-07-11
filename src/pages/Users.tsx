@@ -1,4 +1,3 @@
-// ... All your existing imports
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/layout/Layout";
@@ -22,14 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
-import {
-  checkAuth,
-  User,
-  Team,
-  getTeams,
-  updateTeamMemberCounts,
-} from "@/utils/auth";
-import { UserPlus, Trash2, UserRound, Eye, Edit } from "lucide-react";
+import { UserPlus, Trash2, Eye, Edit } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,19 +40,45 @@ const Users = () => {
   const queryParams = new URLSearchParams(location.search);
   const teamIdParam = queryParams.get("teamId");
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [users, setUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [viewMode, setViewMode] = useState(false);
+  const [viewingUser, setViewingUser] = useState(null);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
     password: "",
-    role: "user" as "admin" | "editor" | "user",
-    teamId: teamIdParam || undefined,
+    role: "user",
+    teamId: undefined,
   });
 
+  useEffect(() => {
+    const selectedTeam = teams.find((team) => team._id === teamIdParam);
+    setNewUser((prev) => ({
+      ...prev,
+      teamId: selectedTeam ? selectedTeam._id : undefined,
+    }));
+  }, [teams, teamIdParam]);
+
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  // Always get teams from localStorage (which Teams.tsx keeps updated)
+  useEffect(() => {
+    const fetchTeamsFromStorage = () => {
+      const teamsData = localStorage.getItem("fmea_teams");
+      if (teamsData) setTeams(JSON.parse(teamsData));
+    };
+    fetchTeamsFromStorage();
+    window.addEventListener("storage", fetchTeamsFromStorage);
+    return () => window.removeEventListener("storage", fetchTeamsFromStorage);
+  }, []);
+
+  const selectedTeam = teams.find((team) => team._id === teamIdParam);
+  const selectedTeamId = selectedTeam?._id;
 
   const fetchUsers = async () => {
     const token = localStorage.getItem("fmea_token");
@@ -85,39 +103,27 @@ const Users = () => {
     }
   };
 
-  // useEffect(() => {
-  //   fetchUsers();
-  // }, []);
-
   useEffect(() => {
-    const { isAuthenticated, user } = checkAuth();
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
-    if (user?.role !== "admin") {
-      navigate("/");
-      toast.error("You don't have permission to access this page");
-      return;
-    }
-
-    const teamsData = getTeams();
-    setTeams(teamsData);
-
-    if (teamIdParam) {
-      const team = teamsData.find((t) => t._id === teamIdParam);
-      if (team) {
-        toast.info(`Viewing users for team: ${team.name}`);
-      }
-    }
-
-    fetchUsers(); // ✅ Single call after auth
+    fetchUsers();
   }, [navigate, teamIdParam]);
+
+  const resetForm = () => {
+    setNewUser({
+      name: "",
+      email: "",
+      password: "",
+      role: "user",
+      teamId: selectedTeamId || undefined,
+    });
+    setEditMode(false);
+    setEditingUserId(null);
+    setViewMode(false);
+    setViewingUser(null);
+  };
 
   const handleAddUser = async () => {
     if (!newUser.name || !newUser.email || !newUser.password) {
-      toast.error("All fields are required");
+      toast.error("Name, email and password are required");
       return;
     }
 
@@ -129,9 +135,6 @@ const Users = () => {
       }
 
       const payload = { ...newUser };
-      if (!payload.teamId || !/^[a-f\d]{24}$/i.test(payload.teamId)) {
-        delete payload.teamId;
-      }
 
       const res = await fetch("https://fmea-backend.vercel.app/api/users", {
         method: "POST",
@@ -148,25 +151,83 @@ const Users = () => {
         throw new Error(data.error || "Failed to create user");
       }
 
-      await fetchUsers(); // ✅ Refresh users list from backend
-      updateTeamMemberCounts(); // ✅ Refresh local team counts if needed
-
-      setNewUser({
-        name: "",
-        email: "",
-        password: "",
-        role: "user",
-        teamId: teamIdParam || undefined,
-      });
-
+      await fetchUsers();
+      localStorage.setItem("teams_reload", Date.now().toString());
+      resetForm();
       setOpen(false);
       toast.success("User created successfully");
-    } catch (error: any) {
+    } catch (error) {
       toast.error(error.message || "Error creating user");
     }
   };
 
-  const handleDeleteClick = (userId: string) => {
+  const handleEditUser = (user) => {
+    setNewUser({
+      name: user.name,
+      email: user.email,
+      password: "",
+      role: user.role,
+      teamId: user.teamId,
+    });
+    setEditingUserId(user._id);
+    setEditMode(true);
+    setOpen(true);
+  };
+
+  const handleViewUser = (user) => {
+    setViewingUser(user);
+    setViewMode(true);
+    setOpen(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUserId) return;
+    if (!newUser.name || !newUser.email) {
+      toast.error("Name and email are required");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("fmea_token");
+      if (!token) {
+        toast.error("Unauthorized: No token found");
+        return;
+      }
+
+      const payload = { ...newUser };
+      if (!payload.password) {
+        delete payload.password;
+      }
+
+      const res = await fetch(
+        `https://fmea-backend.vercel.app/api/users/${editingUserId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update user");
+      }
+
+      await fetchUsers();
+      localStorage.setItem("teams_reload", Date.now().toString());
+      resetForm();
+      setOpen(false);
+      toast.success("User updated successfully");
+    } catch (error) {
+      toast.error(error.message || "Error updating user");
+    }
+  };
+
+  const handleDeleteClick = (userId) => {
     setUserToDelete(userId);
     setShowDeleteDialog(true);
   };
@@ -196,34 +257,26 @@ const Users = () => {
         throw new Error(data.error || "Failed to delete user");
       }
 
-      const updatedUsers = users.filter((user) => user._id !== userToDelete);
-      setUsers(updatedUsers);
-      localStorage.setItem("fmea_users", JSON.stringify(updatedUsers));
-
-      updateTeamMemberCounts();
+      await fetchUsers();
+      localStorage.setItem("teams_reload", Date.now().toString());
       toast.success("User deleted successfully");
       setShowDeleteDialog(false);
       setUserToDelete(null);
-    } catch (err: any) {
+    } catch (err) {
       toast.error(err.message || "Delete failed");
     }
   };
 
-  const handleViewUser = (userId: string) => {
-    navigate(`/users/${userId}`);
-  };
-
-  const handleEditUser = (userId: string) => {
-    navigate(`/users/${userId}`);
-  };
-
-  const getTeamName = (teamId?: string) => {
+  // --- UPDATED getTeamName function ---
+  const getTeamName = (teamId) => {
     if (!teamId) return "Not Assigned";
-    const team = teams.find((t) => t._id === teamId);
+    const id =
+      typeof teamId === "object" && teamId !== null ? teamId._id : teamId;
+    const team = teams.find((t) => t._id === id);
     return team ? team.name : "Unknown Team";
   };
 
-  const getBadgeVariant = (role: string) => {
+  const getBadgeVariant = (role) => {
     switch (role) {
       case "admin":
         return "default";
@@ -234,26 +287,27 @@ const Users = () => {
     }
   };
 
-  const filteredUsers = teamIdParam
-    ? users.filter((user) => user.teamId === teamIdParam)
-    : users;
+  // Table mein hamesha users use karein, filteredUsers hata dein
 
   return (
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">
-            {teamIdParam
-              ? `${getTeamName(teamIdParam)} - Users`
-              : "Users Management"}
+            {selectedTeam ? `${selectedTeam.name} - Users` : "Users Management"}
           </h1>
           <div className="space-x-2">
-            {teamIdParam && (
+            {selectedTeam && (
               <Button variant="outline" onClick={() => navigate("/teams")}>
                 Back to Teams
               </Button>
             )}
-            <Button onClick={() => setOpen(true)}>
+            <Button
+              onClick={() => {
+                resetForm();
+                setOpen(true);
+              }}
+            >
               <UserPlus className="mr-2 h-4 w-4" />
               Add User
             </Button>
@@ -276,14 +330,14 @@ const Users = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length === 0 ? (
+                {users.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center">
                       No users found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => (
+                  users.map((user) => (
                     <TableRow key={user._id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
@@ -298,18 +352,16 @@ const Users = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleViewUser(user._id)}
+                            onClick={() => handleViewUser(user)}
                           >
                             <Eye className="h-4 w-4" />
-                            <span className="sr-only">View</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEditUser(user._id)}
+                            onClick={() => handleEditUser(user)}
                           >
                             <Edit className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
                           </Button>
                           <Button
                             variant="ghost"
@@ -318,7 +370,6 @@ const Users = () => {
                             className="text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
                           </Button>
                         </div>
                       </TableCell>
@@ -331,20 +382,34 @@ const Users = () => {
         </Card>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* Add/Edit User Dialog */}
+      <Dialog
+        open={open && !viewMode}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            resetForm();
+          }
+          setOpen(isOpen);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
+            <DialogTitle>{editMode ? "Edit User" : "Add New User"}</DialogTitle>
             <DialogDescription>
-              Create a new user account. The user will be able to log in with
-              these credentials.
+              {editMode
+                ? "Update user information."
+                : "Create a new user account."}
             </DialogDescription>
           </DialogHeader>
 
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleAddUser();
+              if (editMode) {
+                handleUpdateUser();
+              } else {
+                handleAddUser();
+              }
             }}
           >
             <div className="space-y-4 py-4">
@@ -364,7 +429,11 @@ const Users = () => {
                 }
               />
               <Input
-                placeholder="Password"
+                placeholder={
+                  editMode
+                    ? "New Password (leave blank to keep current)"
+                    : "Password"
+                }
                 type="password"
                 value={newUser.password}
                 onChange={(e) =>
@@ -377,7 +446,7 @@ const Users = () => {
                 onChange={(e) =>
                   setNewUser({
                     ...newUser,
-                    role: e.target.value as "admin" | "editor" | "user",
+                    role: e.target.value,
                   })
                 }
               >
@@ -395,7 +464,7 @@ const Users = () => {
                   })
                 }
               >
-                <option value="">No Team Assigned</option>
+                <option value="">No Department Assigned</option>
                 {teams.map((team) => (
                   <option key={team._id} value={team._id}>
                     {team.name}
@@ -408,16 +477,127 @@ const Users = () => {
               <Button
                 variant="outline"
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  resetForm();
+                  setOpen(false);
+                }}
               >
                 Cancel
               </Button>
-              <Button type="submit">Add User</Button>
+              <Button type="submit">
+                {editMode ? "Update User" : "Add User"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
+      {/* View User Dialog */}
+      <Dialog
+        open={open && viewMode}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            resetForm();
+          }
+          setOpen(isOpen);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>
+              View complete user information.
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewingUser && (
+            <div className="space-y-6 py-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">User Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium w-1/3">
+                          Name
+                        </TableCell>
+                        <TableCell>{viewingUser.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Email</TableCell>
+                        <TableCell>{viewingUser.email}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Role</TableCell>
+                        <TableCell>
+                          <Badge variant={getBadgeVariant(viewingUser.role)}>
+                            {viewingUser.role}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Team</TableCell>
+                        <TableCell>{getTeamName(viewingUser.teamId)}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">
+                          Created At
+                        </TableCell>
+                        <TableCell>
+                          {viewingUser.createdAt
+                            ? new Date(
+                                viewingUser.createdAt
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">
+                          Last Updated
+                        </TableCell>
+                        <TableCell>
+                          {viewingUser.updatedAt
+                            ? new Date(
+                                viewingUser.updatedAt
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                resetForm();
+                setOpen(false);
+              }}
+            >
+              Close
+            </Button>
+            {viewingUser && (
+              <Button
+                onClick={() => {
+                  handleEditUser(viewingUser);
+                  setViewMode(false);
+                }}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit User
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -425,8 +605,7 @@ const Users = () => {
               Are you sure you want to delete this user?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. The user will lose all access to the
-              system.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
