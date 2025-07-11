@@ -105,7 +105,7 @@ const Teams = () => {
         toast.error("No token found. Please login again.");
         return;
       }
-      const res = await fetch("http://localhost:5000/api/teams", {
+      const res = await fetch("https://fmea-backend.vercel.app/api/teams", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -382,7 +382,10 @@ const Teams = () => {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button onClick={handleEditTeam}>Save Changes</Button>
@@ -391,7 +394,10 @@ const Teams = () => {
         </Dialog>
 
         {/* Add Member Dialog */}
-        <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
+        <Dialog
+          open={addMemberDialogOpen}
+          onOpenChange={setAddMemberDialogOpen}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Team Members</DialogTitle>
@@ -420,8 +426,8 @@ const Teams = () => {
                 Are you sure you want to delete this team?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. All team members will be unassigned
-                from this team.
+                This action cannot be undone. All team members will be
+                unassigned from this team.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
