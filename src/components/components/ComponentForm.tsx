@@ -90,7 +90,10 @@ const ComponentForm = () => {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        mode: "cors",
+        credentials: "include",
       });
+
       if (!res.ok) throw new Error();
       toast({
         title: isEditing ? "Component Updated" : "Component Created",
