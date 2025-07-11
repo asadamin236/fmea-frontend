@@ -12,7 +12,7 @@ import { PlusCircle, Edit, Trash2, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
-const API_BASE = "http://localhost:5000/api/equipment-class";
+const API_BASE = "https://fmea-backend.vercel.app/api/equipment-class";
 
 const EquipmentClassList: React.FC = () => {
   const { toast } = useToast();

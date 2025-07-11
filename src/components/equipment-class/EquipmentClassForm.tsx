@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
 
-const API_BASE = "http://localhost:5000/api/equipment-class";
+const API_BASE = "https://fmea-backend.vercel.app/api/equipment-class";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
