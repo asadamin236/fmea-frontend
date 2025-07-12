@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Save } from 'lucide-react';
-import { manufacturers } from '@/data/equipmentData';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { manufacturerService } from '@/services/manufacturerService';
 import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
@@ -30,6 +30,8 @@ const ManufacturerForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const isEdit = !!id;
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(isEdit);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,28 +44,72 @@ const ManufacturerForm: React.FC = () => {
 
   // Load data if in edit mode
   useEffect(() => {
-    if (isEdit) {
-      const manufacturer = manufacturers.find(m => m.id === id);
-      if (manufacturer) {
-        form.reset({
-          name: manufacturer.name,
-          contactInfo: manufacturer.contactInfo || '',
-          website: manufacturer.website || '',
+    if (isEdit && id) {
+      loadManufacturer();
+    }
+  }, [isEdit, id]);
+
+  const loadManufacturer = async () => {
+    try {
+      setInitialLoading(true);
+      const manufacturer = await manufacturerService.getManufacturerById(id!);
+      form.reset({
+        name: manufacturer.name,
+        contactInfo: manufacturer.contactInfo || '',
+        website: manufacturer.website || '',
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load manufacturer",
+        variant: "destructive",
+      });
+      navigate('/manufacturers');
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setLoading(true);
+      
+      if (isEdit && id) {
+        await manufacturerService.updateManufacturer(id, values);
+        toast({
+          title: "Manufacturer Updated",
+          description: `${values.name} has been updated successfully`,
+        });
+      } else {
+        await manufacturerService.createManufacturer(values);
+        toast({
+          title: "Manufacturer Created",
+          description: `${values.name} has been created successfully`,
         });
       }
+      
+      navigate('/manufacturers');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || `Failed to ${isEdit ? 'update' : 'create'} manufacturer`,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  }, [isEdit, id, form]);
-
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log('Form values:', values);
-    
-    toast({
-      title: isEdit ? "Manufacturer Updated" : "Manufacturer Created",
-      description: `${values.name} has been ${isEdit ? 'updated' : 'created'} successfully`,
-    });
-    
-    navigate('/manufacturers');
   };
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          Loading manufacturer...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -129,12 +175,21 @@ const ManufacturerForm: React.FC = () => {
           </div>
           
           <div className="flex justify-end gap-4">
-            <Button variant="outline" type="button" onClick={() => navigate('/manufacturers')}>
+            <Button variant="outline" type="button" onClick={() => navigate('/manufacturers')} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit">
-              <Save className="mr-2 h-4 w-4" />
-              {isEdit ? 'Update' : 'Create'} Manufacturer
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEdit ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isEdit ? 'Update' : 'Create'} Manufacturer
+                </>
+              )}
             </Button>
           </div>
         </form>

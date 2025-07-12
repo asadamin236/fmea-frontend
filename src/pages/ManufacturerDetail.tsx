@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Edit, Trash2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, ExternalLink, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { manufacturers } from '@/data/equipmentData';
+import { manufacturerService, Manufacturer } from '@/services/manufacturerService';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,9 +22,46 @@ const ManufacturerDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [manufacturer, setManufacturer] = useState<Manufacturer | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
-  const manufacturer = manufacturers.find(m => m.id === id);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      loadManufacturer();
+    }
+  }, [id]);
+
+  const loadManufacturer = async () => {
+    try {
+      setLoading(true);
+      const data = await manufacturerService.getManufacturerById(id!);
+      setManufacturer(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load manufacturer",
+        variant: "destructive",
+      });
+      navigate('/manufacturers');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex items-center">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            Loading manufacturer...
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!manufacturer) {
     return (
@@ -47,14 +84,27 @@ const ManufacturerDetail = () => {
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
-    toast({
-      title: "Manufacturer Deleted",
-      description: `Manufacturer "${manufacturer.name}" has been deleted successfully`,
-    });
-    
-    setShowDeleteDialog(false);
-    navigate('/manufacturers');
+  const confirmDelete = async () => {
+    try {
+      setDeleting(true);
+      await manufacturerService.deleteManufacturer(manufacturer._id);
+      
+      toast({
+        title: "Manufacturer Deleted",
+        description: `Manufacturer "${manufacturer.name}" has been deleted successfully`,
+      });
+      
+      setShowDeleteDialog(false);
+      navigate('/manufacturers');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete manufacturer",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -71,7 +121,7 @@ const ManufacturerDetail = () => {
             <h1 className="text-2xl font-bold">Manufacturer Details</h1>
           </div>
           <div className="flex gap-2">
-            <Link to={`/manufacturers/${id}/edit`}>
+            <Link to={`/manufacturers/${manufacturer._id}/edit`}>
               <Button>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -80,6 +130,7 @@ const ManufacturerDetail = () => {
             <Button 
               variant="destructive" 
               onClick={handleDeleteClick}
+              disabled={deleting}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
@@ -132,9 +183,20 @@ const ManufacturerDetail = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-                Delete
-              </AlertDialogAction>
+                          <AlertDialogAction 
+              onClick={confirmDelete} 
+              className="bg-destructive text-destructive-foreground"
+              disabled={deleting}
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
