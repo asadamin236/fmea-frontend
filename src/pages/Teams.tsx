@@ -65,8 +65,7 @@ const Teams = () => {
     };
     window.addEventListener("storage", reloadTeams);
     return () => window.removeEventListener("storage", reloadTeams);
-    // eslint-disable-next-line
-  }, [navigate]);
+  }, []); // Remove navigate from dependencies to prevent infinite loops
 
   const loadTeams = async () => {
     try {
@@ -87,8 +86,7 @@ const Teams = () => {
       setTeams(data.teams || []);
       // Save teams to localStorage for Users.tsx dropdown
       localStorage.setItem("fmea_teams", JSON.stringify(data.teams || []));
-      // Fire localStorage event for other tabs/components
-      window.dispatchEvent(new StorageEvent("storage", { key: "fmea_teams" }));
+      // Don't dispatch storage event here to prevent infinite loops
     } catch (err) {
       toast.error("Failed to load teams");
     }
@@ -122,8 +120,11 @@ const Teams = () => {
       setNewTeam({ name: "", description: "" });
       setCreateDialogOpen(false);
       loadTeams();
-      // Fire localStorage event for other tabs/components
+      // Fire localStorage event for other tabs/components (only when needed)
       localStorage.setItem("force_teams_reload", Date.now().toString());
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "force_teams_reload" })
+      );
     } catch (err) {
       toast.error("An error occurred while creating the team");
     }
@@ -160,6 +161,9 @@ const Teams = () => {
       setEditDialogOpen(false);
       loadTeams();
       localStorage.setItem("force_teams_reload", Date.now().toString());
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "force_teams_reload" })
+      );
     } catch (err) {
       toast.error("Failed to update team");
     }
@@ -186,6 +190,9 @@ const Teams = () => {
       setTeamToDelete(null);
       loadTeams();
       localStorage.setItem("force_teams_reload", Date.now().toString());
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "force_teams_reload" })
+      );
     } catch (err) {
       toast.error("Failed to delete team");
     }

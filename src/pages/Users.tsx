@@ -105,7 +105,7 @@ const Users = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [navigate, teamIdParam]);
+  }, [teamIdParam]); // Remove navigate from dependencies to prevent infinite loops
 
   const resetForm = () => {
     setNewUser({
@@ -153,6 +153,7 @@ const Users = () => {
 
       await fetchUsers();
       localStorage.setItem("teams_reload", Date.now().toString());
+      window.dispatchEvent(new StorageEvent("storage", { key: "teams_reload" }));
       resetForm();
       setOpen(false);
       toast.success("User created successfully");
@@ -219,6 +220,7 @@ const Users = () => {
 
       await fetchUsers();
       localStorage.setItem("teams_reload", Date.now().toString());
+      window.dispatchEvent(new StorageEvent("storage", { key: "teams_reload" }));
       resetForm();
       setOpen(false);
       toast.success("User updated successfully");
@@ -259,6 +261,7 @@ const Users = () => {
 
       await fetchUsers();
       localStorage.setItem("teams_reload", Date.now().toString());
+      window.dispatchEvent(new StorageEvent("storage", { key: "teams_reload" }));
       toast.success("User deleted successfully");
       setShowDeleteDialog(false);
       setUserToDelete(null);
