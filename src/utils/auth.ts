@@ -40,6 +40,8 @@ export const getToken = (): string | null => {
   return localStorage.getItem("fmea_token");
 };
 
+import { API_ENDPOINTS } from "./api";
+
 // ✅ Login using backend
 export const loginUser = async (
   email: string,
@@ -47,7 +49,7 @@ export const loginUser = async (
 ): Promise<{ success: boolean; user?: User; error?: string }> => {
   try {
     const response = await fetch(
-      "https://fmea-backend.vercel.app/api/auth/login",
+      API_ENDPOINTS.LOGIN,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -15,8 +15,7 @@ import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft, Plus, X, Save } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-
-const API_BASE = "https://fmea-backend.vercel.app/api/components";
+import { API_ENDPOINTS } from "@/utils/api";
 
 // Default modules
 const defaultModules = [
@@ -46,7 +45,7 @@ const ComponentForm = () => {
   useEffect(() => {
     if (isEditing) {
       setLoading(true);
-      fetch(`${API_BASE}/${id}`)
+      fetch(`${API_ENDPOINTS.COMPONENTS}/${id}`)
         .then((res) => res.json())
         .then((data) => {
           // Map module names to ids if needed
@@ -78,7 +77,7 @@ const ComponentForm = () => {
     setLoading(true);
     try {
       const method = isEditing ? "PUT" : "POST";
-      const url = isEditing ? `${API_BASE}/${id}` : API_BASE;
+      const url = isEditing ? `${API_ENDPOINTS.COMPONENTS}/${id}` : API_ENDPOINTS.COMPONENTS;
       // Send modules as array of names
       const payload = {
         ...formData,

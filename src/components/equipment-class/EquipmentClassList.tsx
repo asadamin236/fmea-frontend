@@ -11,8 +11,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-
-const API_BASE = "https://fmea-backend.vercel.app/api/equipment-class";
+import { API_ENDPOINTS } from "@/utils/api";
 
 const EquipmentClassList: React.FC = () => {
   const { toast } = useToast();
@@ -32,7 +31,7 @@ const EquipmentClassList: React.FC = () => {
       return;
     }
 
-    fetch(API_BASE, {
+    fetch(API_ENDPOINTS.EQUIPMENT_CLASS, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -62,7 +61,7 @@ const EquipmentClassList: React.FC = () => {
         return;
       }
 
-      const res = await fetch(`${API_BASE}/${id}`, { 
+            const res = await fetch(`${API_ENDPOINTS.EQUIPMENT_CLASS}/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

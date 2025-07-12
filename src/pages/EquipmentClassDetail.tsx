@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { API_ENDPOINTS } from "@/utils/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +28,7 @@ const EquipmentClassDetail = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/equipment-classes/${id}`);
+        const res = await fetch(`${API_ENDPOINTS.EQUIPMENT_CLASS}/${id}`);
         const data = await res.json();
         if (!res.ok) throw new Error("Failed to fetch");
         setEquipmentClass(data);

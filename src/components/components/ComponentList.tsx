@@ -21,8 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-const API_BASE = "https://fmea-backend.vercel.app/api/components";
+import { API_ENDPOINTS } from "@/utils/api";
 
 const ComponentList: React.FC = () => {
   const { toast } = useToast();
@@ -43,7 +42,7 @@ const ComponentList: React.FC = () => {
       return;
     }
 
-    fetch(API_BASE, {
+    fetch(API_ENDPOINTS.COMPONENTS, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -77,12 +76,12 @@ const ComponentList: React.FC = () => {
           return;
         }
 
-        const res = await fetch(`${API_BASE}/${componentToDelete}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+              const res = await fetch(`${API_ENDPOINTS.COMPONENTS}/${componentToDelete}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
         if (!res.ok) throw new Error();
         setComponents(
           components.filter((component) => component._id !== componentToDelete)

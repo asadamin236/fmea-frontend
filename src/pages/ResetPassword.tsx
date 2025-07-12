@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
+import { API_ENDPOINTS } from "@/utils/api";
 
 const ResetPassword = () => {
   const location = useLocation();
@@ -20,7 +21,7 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/reset-password", {
+      const res = await fetch(API_ENDPOINTS.RESET_PASSWORD, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code, newPassword })

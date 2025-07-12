@@ -16,8 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
-
-const API_BASE = "https://fmea-backend.vercel.app/api/equipment-class";
+import { API_ENDPOINTS } from "@/utils/api";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -65,7 +64,7 @@ const EquipmentClassForm: React.FC = () => {
         return;
       }
 
-      fetch(`${API_BASE}/${id}`, {
+      fetch(`${API_ENDPOINTS.EQUIPMENT_CLASS}/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -114,7 +113,7 @@ const EquipmentClassForm: React.FC = () => {
         return;
       }
 
-      const url = isEdit ? `${API_BASE}/${id}` : API_BASE;
+      const url = isEdit ? `${API_ENDPOINTS.EQUIPMENT_CLASS}/${id}` : API_ENDPOINTS.EQUIPMENT_CLASS;
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { 

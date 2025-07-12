@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS } from "@/utils/api";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -15,7 +16,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/forgot-password", {
+      const res = await fetch(API_ENDPOINTS.FORGOT_PASSWORD, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
