@@ -86,12 +86,23 @@ const ComponentForm = () => {
           (moduleId) => modules.find((m) => m.id === moduleId)?.name || moduleId
         ),
       };
+      const token = localStorage.getItem("fmea_token");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication required",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
-        mode: "cors",
-        credentials: "include",
       });
 
       if (!res.ok) throw new Error();

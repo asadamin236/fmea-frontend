@@ -21,7 +21,22 @@ const EquipmentClassList: React.FC = () => {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(API_BASE)
+    const token = localStorage.getItem("fmea_token");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Authentication required",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    fetch(API_BASE, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((r) => r.json())
       .then((data) => setList(data))
       .catch(() =>
@@ -37,7 +52,22 @@ const EquipmentClassList: React.FC = () => {
   const handleDelete = async (id: string) => {
     setDeleting(id);
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const token = localStorage.getItem("fmea_token");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication required",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/${id}`, { 
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!res.ok) throw new Error();
       setList((l) => l.filter((item) => item._id !== id));
       toast({ title: "Deleted", description: "Removed" });

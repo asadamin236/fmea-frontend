@@ -33,9 +33,30 @@ const ComponentList: React.FC = () => {
   );
 
   useEffect(() => {
-    fetch(API_BASE)
+    const token = localStorage.getItem("fmea_token");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Authentication required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    fetch(API_BASE, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
-      .then((data) => setComponents(data));
+      .then((data) => setComponents(data))
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to load components",
+          variant: "destructive",
+        });
+      });
   }, []);
 
   const handleDeleteClick = (componentId: string) => {
@@ -46,8 +67,21 @@ const ComponentList: React.FC = () => {
   const confirmDelete = async () => {
     if (componentToDelete) {
       try {
+        const token = localStorage.getItem("fmea_token");
+        if (!token) {
+          toast({
+            title: "Error",
+            description: "Authentication required",
+            variant: "destructive",
+          });
+          return;
+        }
+
         const res = await fetch(`${API_BASE}/${componentToDelete}`, {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         if (!res.ok) throw new Error();
         setComponents(

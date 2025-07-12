@@ -54,7 +54,22 @@ const EquipmentClassForm: React.FC = () => {
   useEffect(() => {
     if (isEdit) {
       setLoading(true);
-      fetch(`${API_BASE}/${id}`)
+      const token = localStorage.getItem("fmea_token");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication required",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      fetch(`${API_BASE}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
         .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
         .then((data) =>
           form.reset({
@@ -89,10 +104,23 @@ const EquipmentClassForm: React.FC = () => {
     };
 
     try {
+      const token = localStorage.getItem("fmea_token");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication required",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const url = isEdit ? `${API_BASE}/${id}` : API_BASE;
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
